@@ -1,0 +1,87 @@
+cqrs-web-api/
+  ├── main.go                 // Application entry point
+  ├── cmd/
+  │   ├── command_handlers/   // Command handlers
+  │   │   ├── order_commands.go
+  │   │   └── customer_commands.go
+  │   ├── query_handlers/    // Query handlers
+  │   │   ├── order_queries.go
+  │   │   └── customer_queries.go
+  │   ├── main.go             // Separate entry point for commands
+  │   └── main_query.go       // Separate entry point for queries
+  ├── models/
+  │   ├── order.go            // Command and query models for Order
+  │   └── customer.go         // Command and query models for Customer
+  ├── event_store/            // Event store for command-side persistence
+  │   ├── order_events.go
+  │   └── customer_events.go
+  ├── query_database/         // Query-side database for read operations
+  │   ├── order_query_db.go
+  │   └── customer_query_db.go
+  ├── routes/
+  │   ├── routes.go           // Define API routes
+  │   └── middleware.go       // Middleware functions
+  ├── middleware/
+  │   ├── auth.go             // Authentication middleware
+  │   └── logging.go          // Logging middleware
+  ├── config/
+  │   └── config.go           // Configuration settings
+  ├── tests/
+  │   ├── command_handler_test.go // Unit tests for command handlers
+  │   ├── query_handler_test.go   // Unit tests for query handlers
+  │   └── integration_test.go     // Integration tests
+  ├── .env                    // Configuration file (dotenv)
+  ├── README.md               // Project documentation
+  ├── go.mod                  // Go module file
+  └── go.sum                  // Go module dependencies checksum
+
+
+
+
+cqrs-clean-arch/
+  ├── cmd/
+  │   ├── command_handlers/
+  │   │   ├── order_commands.go
+  │   │   └── customer_commands.go
+  │   └── query_handlers/
+  │       ├── order_queries.go
+  │       └── customer_queries.go
+  ├── internal/
+  │   ├── app/                 // Application layer
+  │   │   ├── order/
+  │   │   │   ├── order_service.go
+  │   │   │   ├── order_repository.go
+  │   │   │   └── order_controller.go
+  │   │   └── customer/
+  │   │       ├── customer_service.go
+  │   │       ├── customer_repository.go
+  │   │       └── customer_controller.go
+  │   ├── domain/              // Domain layer
+  │   │   ├── order.go
+  │   │   └── customer.go
+  │   ├── infrastructure/      // Infrastructure layer
+  │   │   ├── event_store/
+  │   │   │   ├── order_events.go
+  │   │   │   └── customer_events.go
+  │   │   └── query_database/
+  │   │       ├── order_query_db.go
+  │   │       └── customer_query_db.go
+  ├── interfaces/              // Interfaces layer
+  │   ├── web/
+  │   │   ├── routes.go
+  │   │   └── middleware.go
+  ├── tests/
+  │   ├── app/
+  │   │   ├── order/
+  │   │   │   ├── order_service_test.go
+  │   │   │   └── order_controller_test.go
+  │   │   └── customer/
+  │   │       ├── customer_service_test.go
+  │   │       └── customer_controller_test.go
+  ├── config/
+  │   └── config.go
+  ├── .env
+  ├── README.md
+  ├── main.go
+  ├── go.mod
+  └── go.sum
