@@ -24,40 +24,40 @@ type CreateCustomerCommand struct {
 	Email string
 }
 
-// HandleCreateCustomerCommand handles the CreateCustomerCommand.
-func (handler *CustomerCommandHandler) HandleCreateCustomerCommand(ctx context.Context, cmd CreateCustomerCommand) (*domain.Customer, error) {
+// CreateCustomerCommand handles the creation of a new customer.
+func (h *CustomerCommandHandler) CreateCustomerCommand(ctx context.Context, cmd CreateCustomerCommand) (*domain.Customer, error) {
 	// Create a new customer entity.
 	newCustomer := domain.NewCustomer(cmd.Name, cmd.Email)
 
 	// Use the customer service to create the customer.
-	createdCustomer, err := handler.customerService.CreateCustomer(*newCustomer)
+	createdCustomer, err := h.customerService.CreateCustomer(*newCustomer)
 	if err != nil {
 		return nil, err
 	}
-
-	// Other logic, such as event publishing, error handling, etc.
-
+	// You can add event publishing logic here if needed.
 	return createdCustomer, nil
 }
 
-// Other customer-related command handlers (e.g., UpdateCustomerCommand, DeleteCustomerCommand) go here.
-
-// Implement your customer command handling functions here.
-
-// CreateCustomerCommand handles the creation of a new customer.
-func (h *CustomerCommandHandler) CreateCustomerCommand(customer domain.Customer) error {
-	// Add logic to handle creating a new customer here.
-	return nil
-}
-
 // UpdateCustomerCommand handles the updating of an existing customer.
-func (h *CustomerCommandHandler) UpdateCustomerCommand(customer domain.Customer) error {
-	// Add logic to handle updating an existing customer here.
-	return nil
+func (h *CustomerCommandHandler) UpdateCustomerCommand(ctx context.Context, customer domain.Customer) (*domain.Customer, error) {
+	// Use the customer service to update the customer.
+	updatedCustomer, err := h.customerService.UpdateCustomer(customer)
+	if err != nil {
+		return nil, err
+	}
+	// You can add event publishing logic here if needed.
+	return updatedCustomer, nil
 }
 
 // DeleteCustomerCommand handles the deletion of an existing customer.
-func (h *CustomerCommandHandler) DeleteCustomerCommand(customerID string) error {
-	// Add logic to handle deleting an existing customer here.
+func (h *CustomerCommandHandler) DeleteCustomerCommand(ctx context.Context, customerID string) error {
+	// Use the customer service to delete the customer.
+	err := h.customerService.DeleteCustomer(customerID)
+	if err != nil {
+		return err
+	}
+	// You can add event publishing logic here if needed.
 	return nil
 }
+
+// Other customer-related command handlers (e.g., UpdateCustomerCommand, DeleteCustomerCommand) go here.

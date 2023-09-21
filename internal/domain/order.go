@@ -1,8 +1,15 @@
 package domain
 
+import "gorm.io/gorm"
+
 type Order struct {
-	ID         string
-	CustomerID string
+	gorm.Model
+	ID          int
+	CustomerID  string
+	Title       string
+	Description string
+	Price       int
+
 	// Add other fields specific to orders
 }
 

@@ -1,46 +1,41 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
-	"log"
+	"fmt"
 	"os"
-	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 // Config represents the application configuration.
 type Config struct {
-	ServerPort  int
-	DatabaseURL string
-	// Add other configuration parameters as needed
+	DBHost     string
+	DBPort     string
+	DBUser     string
+	DBPassword string
+	DBName     string
 }
 
-// LoadConfig loads configuration from a .env file.
-func LoadConfig(filePath string) (*Config, error) {
-	if err := godotenv.Load(filePath); err != nil {
-		log.Printf("Error loading .env file, using defaults: %v", err)
+// LoadConfig loads the application configuration from environment variables or a .env file.
+func LoadConfig() (*Config, error) {
+	err := godotenv.Load(".env")
+	if err != nil {
+		return nil, err
 	}
 
-	cfg := &Config{
-		ServerPort:  getEnvAsInt("SERVER_PORT", 8080),
-		DatabaseURL: getEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/mydb"),
-		// Add other configuration parameters here
+	config := &Config{
+		DBHost:     os.Getenv("DB_HOST"),
+		DBPort:     os.Getenv("DB_PORT"),
+		DBUser:     os.Getenv("DB_USER"),
+		DBPassword: os.Getenv("DB_PASSWORD"),
+		DBName:     os.Getenv("DB_NAME"),
 	}
 
-	return cfg, nil
+	return config, nil
 }
 
-func getEnv(key, defaultValue string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return defaultValue
-}
-
-func getEnvAsInt(key string, defaultValue int) int {
-	if value, exists := os.LookupEnv(key); exists {
-		if intValue, err := strconv.Atoi(value); err == nil {
-			return intValue
-		}
-	}
-	return defaultValue
+// GetDBConnectionString returns the PostgreSQL connection string.
+func (c *Config) GetDBConnectionString() string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		c.DBHost, c.DBPort, c.DBUser, c.DBPassword, c.DBName)
 }

@@ -7,11 +7,27 @@ import (
 	"go-cqrs/interfaces/web"
 	"go-cqrs/internal/app/customer"
 	"go-cqrs/internal/app/order"
+	"go-cqrs/internal/domain"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
 )
+
+var order1 = domain.Order{
+	ID:          123,
+	CustomerID:  "21313",
+	Title:       "adwa",
+	Description: "dwadwa",
+	Price:       021,
+}
+
+// YourModel Define a model that corresponds to your table
+type YourModel struct {
+	gorm.Model
+	Order    string
+	Customer string
+}
 
 var (
 	db  *gorm.DB
@@ -62,6 +78,12 @@ func main() {
 	} else {
 		fmt.Printf("Database '%s' already exists.\n", dbname)
 	}
+	fmt.Println("Table created successfully")
+
+	//
+	// Auto-migrate to create tables for the models
+	db.AutoMigrate(&domain.Order{})
+	db.AutoMigrate(&domain.Customer{})
 
 	// Initialize the order and customer services with the database connection
 	orderService := order.NewService(sqlDB)
@@ -73,4 +95,5 @@ func main() {
 	// Start the HTTP server
 	fmt.Println("Server is running on :8080...")
 	log.Fatal(http.ListenAndServe(":8080", router))
+
 }

@@ -1,8 +1,12 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type Customer struct {
+	gorm.Model
 	ID    string
 	Name  string
 	Email string
