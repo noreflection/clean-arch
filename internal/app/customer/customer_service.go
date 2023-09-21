@@ -23,6 +23,7 @@ func (s *CustomerService) CreateCustomer(customer domain.Customer) (*domain.Cust
 		return nil, err
 	}
 
+	// Return the created customer, assuming the database operation was successful.
 	return &customer, nil
 }
 
