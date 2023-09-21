@@ -1,8 +1,8 @@
 package order
 
 import (
-	"cqrs-web-api/internal/domain"
 	"database/sql"
+	"go-cqrs/internal/domain"
 )
 
 // OrderService represents the service for orders.

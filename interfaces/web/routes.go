@@ -1,9 +1,9 @@
 package web
 
 import (
-	"cqrs-web-api/internal/app/customer"
-	"cqrs-web-api/internal/app/order"
 	"github.com/gorilla/mux"
+	"go-cqrs/internal/app/customer"
+	"go-cqrs/internal/app/order"
 	"net/http"
 )
 

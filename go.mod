@@ -1,4 +1,4 @@
-module cqrs-web-api
+module go-cqrs
 
 go 1.21.1
 

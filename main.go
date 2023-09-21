@@ -1,9 +1,9 @@
 package main
 
 import (
-	"cqrs-web-api/interfaces/web"
-	"cqrs-web-api/internal/app/customer"
-	"cqrs-web-api/internal/app/order"
+	"go-cqrs/interfaces/web"
+	"go-cqrs/internal/app/customer"
+	"go-cqrs/internal/app/order"
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq" // Import the PostgreSQL driver

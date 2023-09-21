@@ -1,9 +1,9 @@
 package customer
 
 import (
-	"cqrs-web-api/internal/domain"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"go-cqrs/internal/domain"
 	"net/http"
 )
 

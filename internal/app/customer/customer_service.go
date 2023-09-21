@@ -1,8 +1,8 @@
 package customer
 
 import (
-	"cqrs-web-api/internal/domain"
 	"database/sql"
+	"go-cqrs/internal/domain"
 )
 
 // CustomerService represents the service for customers.
