@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cqrs-web-api-service
+spec:
+  selector:
+    app: cqrs-web-api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080  # Match the container port
+  type: LoadBalancer  # Use "LoadBalancer" for external access, adjust as needed
