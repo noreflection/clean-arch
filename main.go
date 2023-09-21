@@ -1,43 +1,32 @@
 package main
 
 import (
-	"cqrs-web-api/config"
-	"cqrs-web-api/infrastructure/database"
 	"cqrs-web-api/interfaces/web"
 	"cqrs-web-api/internal/app/customer"
 	"cqrs-web-api/internal/app/order"
+	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq" // Import the PostgreSQL driver
 	"log"
 	"net/http"
 )
 
 func main() {
-	// Load configuration
-	cfg, err := config.LoadConfig(".env")
+	// Connect to PostgreSQL database
+	db, err := sql.Open("postgres", "user=your_user dbname=your_db_name sslmode=disable")
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
-	}
-
-	// Initialize the database connection
-	db, err := database.InitDB(cfg.DatabaseURL)
-	if err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+		log.Fatal(err)
 	}
 	defer db.Close()
 
-	// Initialize the order and customer services
+	// Initialize the order and customer services with the database connection
 	orderService := order.NewService(db)
 	customerService := customer.NewService(db)
 
-	// Initialize the web server
-	router := web.SetupRouter(orderService, customerService)
-	port := cfg.ServerPort
-	serverAddr := fmt.Sprintf(":%d", port)
+	// Configure routes
+	router := web.SetupRouter(*orderService, *customerService)
 
-	// Start the web server
-	fmt.Printf("Server is running on port %d...\n", port)
-	err = http.ListenAndServe(serverAddr, router)
-	if err != nil {
-		log.Fatalf("Server error: %v", err)
-	}
+	// Start the HTTP server
+	fmt.Println("Server is running on :8080...")
+	log.Fatal(http.ListenAndServe(":8080", router))
 }

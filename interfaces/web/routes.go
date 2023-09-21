@@ -8,7 +8,7 @@ import (
 )
 
 // SetupRouter configures API routes.
-func SetupRouter(orderService *order.Service, customerService *customer.Service) *mux.Router {
+func SetupRouter(orderService order.OrderService, customerService customer.CustomerService) *mux.Router {
 	router := mux.NewRouter()
 
 	// Order routes
