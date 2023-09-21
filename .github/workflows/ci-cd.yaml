@@ -1,0 +1,52 @@
+# This workflow does next:
+# Build and test your Go application.
+# Build a Docker image of your Go app.
+# Push the Docker image to a container registry (e.g., Docker Hub).
+# Use kubectl to apply the Kubernetes manifests to your Vultr Kubernetes cluster.
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+
+      - name: Build and test Go app
+        run: |
+          go build
+          go test ./...
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t yourdockerusername/yourapp:latest .
+          docker push yourdockerusername/yourapp:latest
+
+      - name: Configure kubectl
+        run: |
+          echo "$KUBE_CONFIG_DATA" | base64 --decode > kubeconfig.yaml
+          mkdir -p ~/.kube
+          mv kubeconfig.yaml ~/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f kubernetes/deployment.yaml
+          kubectl apply -f kubernetes/service.yaml

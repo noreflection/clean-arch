@@ -1,43 +1,60 @@
-cqrs-web-api/
-  ├── main.go                 // Application entry point
-  ├── cmd/
-  │   ├── command_handlers/   // Command handlers
-  │   │   ├── order_commands.go
-  │   │   └── customer_commands.go
-  │   ├── query_handlers/    // Query handlers
-  │   │   ├── order_queries.go
-  │   │   └── customer_queries.go
-  │   ├── main.go             // Separate entry point for commands
-  │   └── main_query.go       // Separate entry point for queries
-  ├── models/
-  │   ├── order.go            // Command and query models for Order
-  │   └── customer.go         // Command and query models for Customer
-  ├── event_store/            // Event store for command-side persistence
-  │   ├── order_events.go
-  │   └── customer_events.go
-  ├── query_database/         // Query-side database for read operations
-  │   ├── order_query_db.go
-  │   └── customer_query_db.go
-  ├── routes/
-  │   ├── routes.go           // Define API routes
-  │   └── middleware.go       // Middleware functions
-  ├── middleware/
-  │   ├── auth.go             // Authentication middleware
-  │   └── logging.go          // Logging middleware
-  ├── config/
-  │   └── config.go           // Configuration settings
-  ├── tests/
-  │   ├── command_handler_test.go // Unit tests for command handlers
-  │   ├── query_handler_test.go   // Unit tests for query handlers
-  │   └── integration_test.go     // Integration tests
-  ├── .env                    // Configuration file (dotenv)
-  ├── README.md               // Project documentation
-  ├── go.mod                  // Go module file
-  └── go.sum                  // Go module dependencies checksum
+commented project structure:
+cqrs-clean-arch/
+  ├── cmd/  // Command handlers and query handlers for entry point
+  │   ├── command_handlers/
+  │   │   ├── order_commands.go   // Handles write operations for orders
+  │   │   └── customer_commands.go   // Handles write operations for customers
+  │   └── query_handlers/
+  │       ├── order_queries.go   // Handles read operations for orders
+  │       └── customer_queries.go   // Handles read operations for customers
+  ├── internal/   // Core of the application
+  │   ├── app/   // Application layer
+  │   │   ├── order/   // Module for order management
+  │   │   │   ├── order_service.go   // Business logic for orders
+  │   │   │   ├── order_repository.go   // Data access for orders
+  │   │   │   └── order_controller.go   // HTTP request handling for orders
+  │   │   └── customer/   // Module for customer management
+  │   │       ├── customer_service.go   // Business logic for customers
+  │   │       ├── customer_repository.go   // Data access for customers
+  │   │       └── customer_controller.go   // HTTP request handling for customers
+  │   ├── domain/   // Domain layer for core business entities
+  │   │   ├── order.go   // Defines the order domain model
+  │   │   └── customer.go   // Defines the customer domain model
+  │   ├── infrastructure/   // External concerns
+  │   │   ├── event_store/   // Event sourcing for order and customer events
+  │   │   │   ├── order_events.go   // Events related to orders
+  │   │   │   └── customer_events.go   // Events related to customers
+  │   │   ├── query_database/   // Data access for read operations
+  │   │   │   ├── order_query_db.go   // Database access for reading orders
+  │   │   │   └── customer_query_db.go   // Database access for reading customers
+  │   │   ├── command_database/   // Data access for write operations
+  │   │   │   ├── order_command_db.go   // Database access for writing orders
+  │   │   │   └── customer_command_db.go   // Database access for writing customers
+  │   │   ├── config/   // Configuration related code
+  │   │   │   └── config.go   // Loads and manages application configuration
+  │   │   ├── kubernetes/   // Kubernetes deployment files
+  │   │   │   ├── deployment.yaml   // Kubernetes deployment configuration
+  │   │   │   └── service.yaml   // Kubernetes service configuration
+  │   │   └── Dockerfile   // Dockerfile for containerization
+  ├── interfaces/   // Interfaces layer for interacting with the outside world
+  │   ├── web/   // Web interface
+  │   │   ├── routes.go   // Defines HTTP routes and handlers
+  │   │   └── middleware.go   // Contains HTTP middleware functions
+  ├── tests/   // Unit and integration tests
+  │   ├── app/
+  │   │   ├── order/
+  │   │   │   ├── order_service_test.go   // Tests for order service
+  │   │   │   └── order_controller_test.go   // Tests for order controller
+  │   │   └── customer/
+  │   │       ├── customer_service_test.go   // Tests for customer service
+  │   │       └── customer_controller_test.go   // Tests for customer controller
+  ├── .env   // Configuration file (e.g., for environment variables)
+  ├── README.md   // Project documentation
+  ├── main.go   // Main entry point for the application
+  ├── go.mod   // Go module file for dependency management
+  └── go.sum   // Go module checksum file
 
-
-
-
+project structure without comments:
 cqrs-clean-arch/
   ├── cmd/
   │   ├── command_handlers/
@@ -47,7 +64,7 @@ cqrs-clean-arch/
   │       ├── order_queries.go
   │       └── customer_queries.go
   ├── internal/
-  │   ├── app/                 // Application layer
+  │   ├── app/
   │   │   ├── order/
   │   │   │   ├── order_service.go
   │   │   │   ├── order_repository.go
@@ -56,17 +73,26 @@ cqrs-clean-arch/
   │   │       ├── customer_service.go
   │   │       ├── customer_repository.go
   │   │       └── customer_controller.go
-  │   ├── domain/              // Domain layer
+  │   ├── domain/
   │   │   ├── order.go
   │   │   └── customer.go
-  │   ├── infrastructure/      // Infrastructure layer
+  │   ├── infrastructure/
   │   │   ├── event_store/
   │   │   │   ├── order_events.go
   │   │   │   └── customer_events.go
-  │   │   └── query_database/
-  │   │       ├── order_query_db.go
-  │   │       └── customer_query_db.go
-  ├── interfaces/              // Interfaces layer
+  │   │   ├── query_database/
+  │   │   │   ├── order_query_db.go
+  │   │   │   └── customer_query_db.go
+  │   │   ├── command_database/
+  │   │   │   ├── order_command_db.go
+  │   │   │   └── customer_command_db.go
+  │   │   ├── config/
+  │   │   │   └── config.go
+  │   │   ├── kubernetes/
+  │   │   │   ├── deployment.yaml
+  │   │   │   └── service.yaml
+  │   │   └── Dockerfile
+  ├── interfaces/
   │   ├── web/
   │   │   ├── routes.go
   │   │   └── middleware.go
@@ -78,8 +104,6 @@ cqrs-clean-arch/
   │   │   └── customer/
   │   │       ├── customer_service_test.go
   │   │       └── customer_controller_test.go
-  ├── config/
-  │   └── config.go
   ├── .env
   ├── README.md
   ├── main.go
