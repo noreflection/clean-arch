@@ -1,16 +1,47 @@
 package command_handlers
 
-import "go-cqrs/internal/domain"
+import (
+	"context"
+
+	"go-cqrs/internal/app/customer"
+	"go-cqrs/internal/domain"
+)
 
 // CustomerCommandHandler handles customer-related commands.
 type CustomerCommandHandler struct {
-	// You can add dependencies or fields needed for command handling here.
+	customerService customer.CustomerService
 }
 
-// NewCustomerCommandHandler creates a new instance of CustomerCommandHandler.
-func NewCustomerCommandHandler() *CustomerCommandHandler {
-	return &CustomerCommandHandler{}
+// NewCustomerCommandHandler creates a new CustomerCommandHandler.
+func NewCustomerCommandHandler(customerService customer.CustomerService) *CustomerCommandHandler {
+	return &CustomerCommandHandler{
+		customerService: customerService,
+	}
 }
+
+// CreateCustomerCommand represents a command to create a new customer.
+type CreateCustomerCommand struct {
+	Name  string
+	Email string
+}
+
+// HandleCreateCustomerCommand handles the CreateCustomerCommand.
+func (handler *CustomerCommandHandler) HandleCreateCustomerCommand(ctx context.Context, cmd CreateCustomerCommand) error {
+	// Create a new customer entity.
+	newCustomer := domain.NewCustomer(cmd.Name, cmd.Email)
+
+	// Use the customer service to create the customer.
+	_, err := handler.customerService.CreateCustomer(newCustomer)
+	if err != nil {
+		return err
+	}
+
+	// Other logic, such as event publishing, error handling, etc.
+
+	return nil
+}
+
+// Other customer-related command handlers (e.g., UpdateCustomerCommand, DeleteCustomerCommand) go here.
 
 // Implement your customer command handling functions here.
 
