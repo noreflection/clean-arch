@@ -1,6 +1,6 @@
 package command_handlers
 
-import "cqrs-clean-arch/internal/domain"
+import "go-cqrs/internal/domain"
 
 // CustomerCommandHandler handles customer-related commands.
 type CustomerCommandHandler struct {

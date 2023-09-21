@@ -1,7 +1,7 @@
 package command_database
 
 import (
-	"cqrs-clean-arch/internal/domain"
+	"go-cqrs/internal/domain"
 )
 
 // CustomerCommandDB represents the command database for customer commands.

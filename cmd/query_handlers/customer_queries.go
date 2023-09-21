@@ -1,6 +1,6 @@
 package query_handlers
 
-import "cqrs-clean-arch/internal/domain"
+import "go-cqrs/internal/domain"
 
 // CustomerQueryHandler handles customer-related queries.
 type CustomerQueryHandler struct {

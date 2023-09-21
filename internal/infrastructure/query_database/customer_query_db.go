@@ -1,7 +1,7 @@
 package query_database
 
 import (
-	"cqrs-clean-arch/internal/domain"
+	"go-cqrs/internal/domain"
 )
 
 // CustomerQueryDB represents the query database for customer queries.

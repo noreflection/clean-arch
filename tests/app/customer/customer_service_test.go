@@ -1,4 +1,4 @@
-package order
+package customer
 
 import (
 	"testing"
@@ -6,6 +6,6 @@ import (
 
 // This is a placeholder test file for the order controller.
 // Implement your order controller tests here.
-func TestOrderController(t *testing.T) {
+func TestCustomerService(t *testing.T) {
 	// Add your test cases for the order controller here.
 }
