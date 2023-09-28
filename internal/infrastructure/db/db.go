@@ -56,6 +56,7 @@ func SetupDatabase() (*sql.DB, error) {
 			log.Fatal(err)
 		}
 		fmt.Printf("Database '%s' created.\n", dbname)
+
 	} else {
 		fmt.Printf("Database '%s' already exists.\n", dbname)
 	}
@@ -70,9 +71,9 @@ func SetupDatabase() (*sql.DB, error) {
     `
 
 	// Execute the SQL statement to create the table
-	err = db.Exec(createTableSQL)
+	err1 := db.Exec(createTableSQL)
 	if err != nil {
-		log.Fatal("shitttttttttttttttt", err)
+		log.Fatal("shitttttttttttttttt", err1)
 	}
 
 	fmt.Println("Table 'my_table' created successfully.")
