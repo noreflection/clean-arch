@@ -1,7 +1,7 @@
 package db
 
 import (
-	"database/sql"
+	//"database/sql"
 	"fmt"
 	"github.com/lib/pq"
 	"gorm.io/driver/postgres"
@@ -15,10 +15,8 @@ var (
 )
 
 // SetupDatabase configures database.
-func SetupDatabase() (*sql.DB, error) {
+func SetupDatabase() (*gorm.DB, error) {
 	// Initialize the database connection
-	//dsn := "host=localhost user=postgres password=password dbname=postgres port=5432 sslmode=disable"
-	//dsn := "host='vultr-prod-5f785376-9e78-4398-86ef-5bd59e46afa8-vultr-prod-5c15.vultrdb.com' user=vultradmin password='AVNS_4ijKKcYd-4-mdo65XBT' dbname=defaultdb port=16751 sslmode=disable"
 	connectionString := "postgres://vultradmin:AVNS_4ijKKcYd-4-mdo65XBT@vultr-prod-5f785376-9e78-4398-86ef-5bd59e46afa8-vultr-prod-5c15.vultrdb.com:16751/defaultdb"
 	db, err = gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 	if err != nil {
@@ -38,10 +36,8 @@ func SetupDatabase() (*sql.DB, error) {
 	}
 	fmt.Println("Database connection established successfully")
 
-	print("here")
-	defer sqlDB.Close()
-
 	dbname := "core-service-db"
+
 	// Check if the database already exists
 	var dbExists bool
 	err = sqlDB.QueryRow("SELECT EXISTS(SELECT datname FROM pg_database WHERE datname=$1)", dbname).Scan(&dbExists)
@@ -51,34 +47,19 @@ func SetupDatabase() (*sql.DB, error) {
 
 	if !dbExists {
 		// Database does not exist, so create it
-		err := db.Exec("CREATE DATABASE " + pq.QuoteIdentifier(dbname))
+		_, err := sqlDB.Exec("CREATE DATABASE " + pq.QuoteIdentifier(dbname)) // Capture the result and ignore it
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Printf("Database '%s' created.\n", dbname)
-
 	} else {
 		fmt.Printf("Database '%s' already exists.\n", dbname)
 	}
 
-	// create table
-	createTableSQL := `
-        CREATE TABLE IF NOT EXISTS my_table (
-            id serial PRIMARY KEY,
-            name VARCHAR (255) NOT NULL,
-            age INT
-        );
-    `
+	// Note: Do not close the database connection here.
+	// The caller of this function should be responsible for closing it.
 
-	// Execute the SQL statement to create the table
-	err1 := db.Exec(createTableSQL)
-	if err != nil {
-		log.Fatal("shitttttttttttttttt", err1)
-	}
-
-	fmt.Println("Table 'my_table' created successfully.")
-
-	return sqlDB, err
+	return db, err
 }
 
 func createTable() error {

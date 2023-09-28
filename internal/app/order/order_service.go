@@ -1,37 +1,37 @@
 package order
 
 import (
-	"database/sql"
 	"go-cqrs/internal/domain"
+	"gorm.io/gorm"
 )
 
 // OrderService represents the service for orders.
 type OrderService struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewService(db *sql.DB) *OrderService {
+func NewService(db *gorm.DB) *OrderService {
 	return &OrderService{
 		db: db,
 	}
 }
 
 func (s *OrderService) CreateOrder(order domain.Order) (*domain.Order, error) {
-	// Implement the CreateOrder method with PostgreSQL database operations
-	_, err := s.db.Exec("INSERT INTO orders (id, customer_id) VALUES ($1, $2)", order.ID, order.CustomerID)
-	if err != nil {
-		return nil, err
+	// Implement the CreateOrder method with GORM
+	result := s.db.Create(&order)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	return &order, nil
 }
 
-func (s *OrderService) GetOrder(orderID string) (*domain.Order, error) {
-	// Implement the GetOrder method with PostgreSQL database operations
+func (s *OrderService) GetOrder(orderId string) (*domain.Order, error) {
+	// Implement the GetOrder method with GORM
 	var order domain.Order
-	err := s.db.QueryRow("SELECT id, customer_id FROM orders WHERE id = $1", orderID).Scan(&order.ID, &order.CustomerID)
-	if err != nil {
-		return nil, err
+	result := s.db.First(&order, "id = ?", orderId)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	return &order, nil

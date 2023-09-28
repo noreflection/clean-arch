@@ -2,9 +2,10 @@ package order
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"go-cqrs/internal/domain"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // Import the OrderService interface from the correct package
@@ -30,6 +31,7 @@ func (c *OrderController) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	createdOrder, err := c.service.CreateOrder(newOrder)
 	if err != nil {
 		http.Error(w, "Failed to create order", http.StatusInternalServerError)
+		print("Database connection failed:", err)
 		return
 	}
 

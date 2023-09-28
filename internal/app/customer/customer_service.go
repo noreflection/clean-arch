@@ -1,64 +1,40 @@
 package customer
 
 import (
-	"database/sql"
 	"go-cqrs/internal/domain"
+	"gorm.io/gorm"
 )
 
-// CustomerService represents the service for customers.
+// CustomerService represents the service for orders.
 type CustomerService struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewService(db *sql.DB) *CustomerService {
+func NewService(db *gorm.DB) *CustomerService {
 	return &CustomerService{
 		db: db,
 	}
 }
 
-// CreateCustomer creates a new customer in the database.
 func (s *CustomerService) CreateCustomer(customer domain.Customer) (*domain.Customer, error) {
-	// Implement the CreateCustomer method with PostgreSQL database operations
-	_, err := s.db.Exec("INSERT INTO customers (id, name) VALUES ($1, $2)", customer.ID, customer.Name)
-	if err != nil {
-		return nil, err
+	// Implement the CreateOrder method with GORM
+	result := s.db.Create(&customer)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	// Return the created customer, assuming the database operation was successful.
 	return &customer, nil
 }
 
-// GetCustomer retrieves a customer by ID from the database.
 func (s *CustomerService) GetCustomer(customerID string) (*domain.Customer, error) {
-	// Implement the GetCustomer method with PostgreSQL database operations
-	var customer domain.Customer
-	err := s.db.QueryRow("SELECT id, name FROM customers WHERE id = $1", customerID).Scan(&customer.ID, &customer.Name)
-	if err != nil {
-		return nil, err
+	// Implement the GetOrder method with GORM
+	var order domain.Customer
+	result := s.db.First(&order, "id = ?", customerID)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	return &customer, nil
+	return &order, nil
 }
 
-// UpdateCustomer updates an existing customer in the database.
-func (s *CustomerService) UpdateCustomer(customer domain.Customer) (*domain.Customer, error) {
-	// Implement the UpdateCustomer method with PostgreSQL database operations
-	_, err := s.db.Exec("UPDATE customers SET name = $2 WHERE id = $1", customer.ID, customer.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	// Return the updated customer, assuming the database operation was successful.
-	return &customer, nil
-}
-
-// DeleteCustomer deletes a customer by ID from the database.
-func (s *CustomerService) DeleteCustomer(customerID string) error {
-	// Implement the DeleteCustomer method with PostgreSQL database operations
-	_, err := s.db.Exec("DELETE FROM customers WHERE id = $1", customerID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// Add other order-related service methods here
