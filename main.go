@@ -22,13 +22,6 @@ var order1 = domain.Order{
 	Price:       021,
 }
 
-// YourModel Define a model that corresponds to your table
-type YourModel struct {
-	gorm.Model
-	Order    string
-	Customer string
-}
-
 var (
 	db  *gorm.DB
 	err error
@@ -82,8 +75,36 @@ func main() {
 
 	//
 	// Auto-migrate to create tables for the models
-	db.AutoMigrate(&domain.Order{})
-	db.AutoMigrate(&domain.Customer{})
+	//db.AutoMigrate(&domain.Order{}, &domain.Customer{})
+
+	//// Create a gormigrate instance using the new "gorm.io/gorm" DB
+	//m := gormigrate.New(db, &gormigrate.Options{
+	//	TableName:      "migrations",
+	//	IDColumnName:   "id",
+	//	IDColumnSize:   255,
+	//	UseTransaction: true,
+	//}, []*gormigrate.Migration{
+	//	{
+	//		ID: "202209201200", // Unique ID for the migration
+	//		Migrate: func(tx *gorm.DB) error {
+	//			// Your migration logic here
+	//			return nil
+	//		},
+	//		Rollback: func(tx *gorm.DB) error {
+	//			// Your rollback logic here
+	//			return nil
+	//		},
+	//	},
+	//})
+	//
+	//// Apply migrations
+	//if err := m.Migrate(); err != nil {
+	//	log.Fatalf("Could not migrate: %v", err)
+	//}
+
+	log.Println("Migration completed")
+
+	log.Println("Migration completed")
 
 	// Initialize the order and customer services with the database connection
 	orderService := order.NewService(sqlDB)

@@ -7,9 +7,10 @@ import (
 
 type Customer struct {
 	gorm.Model
-	ID    string
-	Name  string
-	Email string
+	ID      string
+	Name    string
+	Surname string
+	Email   string
 	// Add other fields specific to customers
 }
 
