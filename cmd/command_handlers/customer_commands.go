@@ -38,8 +38,8 @@ func (h *CustomerCommandHandler) HandleCreateCustomerCommand(ctx context.Context
 	customer := domain.NewCustomer( /*cmd.ID,*/ cmd.Name, cmd.Email)
 
 	// Persist the customer creation event
-	event := event_store.NewCustomerCreatedEvent( /*customer.ID(),*/ customer.Name(), customer.Email())
-	if err := h.eventStore.StoreEvent(ctx, event); err != nil {
+	event := event_store.NewCustomerCreatedEvent(customer.ID, customer.Name, customer.Email)
+	if err := h.eventStore.StoreEvent(ctx, *event); err != nil {
 		return err
 	}
 

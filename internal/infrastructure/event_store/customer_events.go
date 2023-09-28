@@ -24,6 +24,16 @@ func NewCustomerEventStore(db *sql.DB) *CustomerEventStore {
 	return &CustomerEventStore{db}
 }
 
+// NewCustomerCreatedEvent creates a new CustomerCreatedEvent.
+func NewCustomerCreatedEvent(id, name, email string) *CustomerCreatedEvent {
+	return &CustomerCreatedEvent{
+		ID:    id,
+		Name:  name,
+		Email: email,
+		//Timestamp: time.Now(),
+	}
+}
+
 // StoreEvent stores a customer created event in the event store.
 func (s *CustomerEventStore) StoreEvent(ctx context.Context, event CustomerCreatedEvent) error {
 	//query := `
