@@ -35,7 +35,7 @@ func (h *CustomerCommandHandler) CreateCustomerCommand(ctx context.Context, cmd 
 		return nil, err
 	}
 	// You can add event publishing logic here if needed.
-	return *createdCustomer, nil
+	return createdCustomer, nil
 }
 
 // UpdateCustomerCommand handles the updating of an existing customer.
