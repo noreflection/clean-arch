@@ -1,63 +1,51 @@
+// customer_commands.go
+
 package command_handlers
 
 import (
 	"context"
-	"go-cqrs/internal/app/customer"
+	"errors"
 	"go-cqrs/internal/domain"
+	"go-cqrs/internal/infrastructure/event_store"
 )
 
 // CustomerCommandHandler handles customer-related commands.
 type CustomerCommandHandler struct {
-	customerService customer.CustomerService
+	eventStore event_store.EventStore
 }
 
-// NewCustomerCommandHandler creates a new CustomerCommandHandler.
-func NewCustomerCommandHandler(customerService customer.CustomerService) *CustomerCommandHandler {
-	return &CustomerCommandHandler{
-		customerService: customerService,
-	}
+// NewCustomerCommandHandler creates a new instance of CustomerCommandHandler.
+func NewCustomerCommandHandler(eventStore event_store.EventStore) *CustomerCommandHandler {
+	return &CustomerCommandHandler{eventStore: eventStore}
 }
 
-// CreateCustomerCommand represents a command to create a new customer.
+// CreateCustomerCommand is a command to create a new customer.
 type CreateCustomerCommand struct {
+	ID    string
 	Name  string
 	Email string
+	// Add other customer attributes here
 }
 
-// CreateCustomerCommand handles the creation of a new customer.
-func (h *CustomerCommandHandler) CreateCustomerCommand(ctx context.Context, cmd CreateCustomerCommand) (*domain.Customer, error) {
-	// Create a new customer entity.
-	newCustomer := domain.NewCustomer(cmd.Name, cmd.Email)
-
-	// Use the customer service to create the customer.
-	createdCustomer, err := h.customerService.CreateCustomer(*newCustomer)
-	if err != nil {
-		return nil, err
+// HandleCreateCustomerCommand handles the CreateCustomerCommand.
+func (h *CustomerCommandHandler) HandleCreateCustomerCommand(ctx context.Context, cmd CreateCustomerCommand) error {
+	// Validate input
+	if cmd.ID == "" || cmd.Name == "" || cmd.Email == "" {
+		return errors.New("customer ID, name, and email are required")
 	}
-	// You can add event publishing logic here if needed.
-	return createdCustomer, nil
-}
 
-// UpdateCustomerCommand handles the updating of an existing customer.
-func (h *CustomerCommandHandler) UpdateCustomerCommand(ctx context.Context, customer domain.Customer) (*domain.Customer, error) {
-	// Use the customer service to update the customer.
-	updatedCustomer, err := h.customerService.UpdateCustomer(customer)
-	if err != nil {
-		return nil, err
-	}
-	// You can add event publishing logic here if needed.
-	return updatedCustomer, nil
-}
+	// Create a new customer entity
+	customer := domain.NewCustomer( /*cmd.ID,*/ cmd.Name, cmd.Email)
 
-// DeleteCustomerCommand handles the deletion of an existing customer.
-func (h *CustomerCommandHandler) DeleteCustomerCommand(ctx context.Context, customerID string) error {
-	// Use the customer service to delete the customer.
-	err := h.customerService.DeleteCustomer(customerID)
-	if err != nil {
+	// Persist the customer creation event
+	event := event_store.NewCustomerCreatedEvent(customer.ID, customer.Name, customer.Email)
+	if err := h.eventStore.StoreEvent(ctx, *event); err != nil {
 		return err
 	}
-	// You can add event publishing logic here if needed.
+
+	// Perform any additional logic or validations here
+
 	return nil
 }
 
-// Other customer-related command handlers (e.g., UpdateCustomerCommand, DeleteCustomerCommand) go here.
+// Add other customer-related commands and their handlers here
