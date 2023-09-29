@@ -5,6 +5,8 @@ import (
 	_ "github.com/lib/pq" // Import the PostgreSQL driver
 	"go-cqrs/cmd/command_handlers"
 	"go-cqrs/interfaces/web"
+	"go-cqrs/internal/app/customer"
+
 	//"go-cqrs/internal/app/customer"
 	"go-cqrs/internal/app/order"
 	"go-cqrs/internal/domain"
@@ -38,14 +40,16 @@ func main() {
 	}
 
 	// Initialize dependencies
-	eventStore := event_store.NewEventStore() // Assume NewEventStore is a function that returns an event store
-	// Initialize your command handler and controller
-	commandHandler := command_handlers.NewCustomerCommandHandler( /* pass event store here */ )
-	customerController := app.NewCustomerController(commandHandler)
+	customerEventStore := event_store.NewEventStore("customer") // Assume NewEventStore is a function that returns an event store
 
-	// Initialize your command handler and controller
-	commandHandler := command_handlers.NewOrderCommandHandler( /* pass event store here */ )
-	orderController := app.NewCustomerController(commandHandler)
+	// Initialize the customer command handler and controller
+	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore)
+	customerController := customer.NewCustomerController(customerCommandHandler)
+
+	// Initialize the order command handler and controller
+	orderEventStore := event_store.NewEventStore("order")
+	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore)
+	orderController := order.NewOrderController(orderCommandHandler)
 
 	// Initialize the order and customer services with the database connection
 	orderService := order.NewService(database)

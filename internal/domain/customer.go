@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -25,12 +24,4 @@ func NewCustomer(name string, email string) *Customer {
 		Email: email,
 		// Initialize other fields here if needed.
 	}
-}
-
-// generateUniqueID generates a unique identifier for the customer.
-func generateUniqueID() string {
-	// You can use a library like "github.com/google/uuid" to generate UUIDs.
-	// Example:
-	uniqueID := uuid.New().String()
-	return uniqueID
 }

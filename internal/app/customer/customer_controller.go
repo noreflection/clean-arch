@@ -58,12 +58,12 @@ type SuccessResponse struct {
 }
 
 // HandleErrorResponse sends an error response with the specified error message.
-func HandleErrorResponse(w http.ResponseWriter, errorMessage string) {
+func HandleErrorResponse(w http.ResponseWriter, errorMessage error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest) // You can set the appropriate HTTP status code for errors
 
 	// Create and marshal the error response
-	response := ErrorResponse{Error: errorMessage}
+	response := ErrorResponse{Error: errorMessage.Error()}
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
 		// Handle JSON marshaling error

@@ -11,11 +11,11 @@ import (
 
 // CustomerCommandHandler handles customer-related commands.
 type CustomerCommandHandler struct {
-	eventStore event_store.CustomerEventStore
+	eventStore event_store.EventStore
 }
 
 // NewCustomerCommandHandler creates a new instance of CustomerCommandHandler.
-func NewCustomerCommandHandler(eventStore event_store.CustomerEventStore) *CustomerCommandHandler {
+func NewCustomerCommandHandler(eventStore event_store.EventStore) *CustomerCommandHandler {
 	return &CustomerCommandHandler{eventStore: eventStore}
 }
 
