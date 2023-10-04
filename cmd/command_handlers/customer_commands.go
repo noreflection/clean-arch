@@ -3,21 +3,21 @@ package command_handlers
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	//"go-cqrs/internal/app/customer"
 	"go-cqrs/internal/domain"
-	"gorm.io/gorm"
 )
 
 // CustomerCommandHandler handles customer-related commands.
 type CustomerCommandHandler struct {
 	//eventStore event_store.EventStore
-	db      *gorm.DB
+	db      *sql.DB
 	service domain.CustomerService
 }
 
 // NewCustomerCommandHandler creates a new instance of CustomerCommandHandler.
-func NewCustomerCommandHandler(d *gorm.DB) *CustomerCommandHandler {
+func NewCustomerCommandHandler(d *sql.DB) *CustomerCommandHandler {
 	return &CustomerCommandHandler{ /*eventStore: eventStore*/ db: d}
 }
 

@@ -17,9 +17,9 @@ func NewService(db *sql.DB) *CustomerService {
 	}
 }
 
-func (s *CustomerService) CreateCustomer(id, name, email string) error {
+func (s *CustomerService) CreateCustomer(name, email string) (int64, error) {
 	cr := NewCustomerRepository(s.db)
-	return cr.Create(id, name, email)
+	return cr.Create(name, email)
 }
 
 func (s *CustomerService) GetCustomer(customerID string) (*domain.Customer, error) {
