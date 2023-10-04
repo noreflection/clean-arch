@@ -110,3 +110,55 @@ cqrs-clean-arch/
   ├── main.go
   ├── go.mod
   └── go.sum
+
+
+
+Based on the provided architecture on top, which adhere to a combination of CQRS (Command Query Responsibility
+Segregation) and the Clean Architecture, the general flow of the system, particularly for a
+"create user" (or more appropriately given the context, "create customer") operation:
+
+Controller:
+
+Handles HTTP (or any other protocol's) requests and transforms them into application-specific commands or queries.
+For a "create customer" operation, the controller in customer_controller.go would likely take the incoming HTTP
+request, validate the payload, and construct a CreateCustomerCommand (or a similar command).
+
+Command Handlers:
+
+Processes commands. They contain the logic for handling the different types of commands (e.g., create, update, delete).
+The controller will forward the CreateCustomerCommand to the appropriate command handler in customer_commands.go.
+The command handler's responsibility is to orchestrate the operation, meaning it will handle any necessary business
+logic or domain validations before persisting the new customer.
+
+Service (optional, but typical in Clean Architecture):
+
+If there are complex business rules or operations that involve multiple aggregates/entities, the command handler
+might call the customer_service.go to handle this logic.
+The service might also be responsible for domain events or other side effects of the command.
+
+Repository:
+
+Provides an abstraction over the storage mechanism, allowing the domain or application logic to be decoupled from the
+details of data persistence.
+After any necessary business logic or validation, the command handler (or service) will call the customer_repository.go
+to persist the new customer.
+
+Database Interface/Package:
+
+Contains the actual code to interact with the database.
+The customer_repository.go will, in turn, invoke methods in the customer_command_db.go to actually perform the database
+operations to store the new customer.
+Event Store (optional, but typical in CQRS/ES architectures):
+
+If the system uses Event Sourcing, instead of storing the current state of the customer directly, it will store the
+sequence of events that led to that state.
+In this case, the system might emit a CustomerCreatedEvent and store it in the event store (order_events.go or
+customer_events.go). Subsequently, projections or other mechanisms are used to construct the current state from these
+events when needed.
+
+The general flow:
+
+Controller -> CommandHandler.
+CommandHandler (possibly -> Service).
+Service/CommandHandler -> Repository.
+Repository -> Database Interface/Package (for actual persistence).
