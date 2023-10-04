@@ -1,5 +1,3 @@
-// customer_controller.go
-
 package customer
 
 import (

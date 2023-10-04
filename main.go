@@ -6,7 +6,6 @@ import (
 	"go-cqrs/cmd/command_handlers"
 	"go-cqrs/interfaces/web"
 	"go-cqrs/internal/app/customer"
-
 	//"go-cqrs/internal/app/customer"
 	"go-cqrs/internal/app/order"
 	"go-cqrs/internal/domain"
@@ -40,10 +39,10 @@ func main() {
 	}
 
 	// Initialize dependencies
-	customerEventStore := event_store.NewEventStore("customer") // Assume NewEventStore is a function that returns an event store
+	//customerEventStore := event_store.NewEventStore("customer") // Assume NewEventStore is a function that returns an event store
 
 	// Initialize the customer command handler and controller
-	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore)
+	customerCommandHandler := command_handlers.NewCustomerCommandHandler( /*customerEventStore*/ database)
 	customerController := customer.NewCustomerController(customerCommandHandler)
 
 	// Initialize the order command handler and controller

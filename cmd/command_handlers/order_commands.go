@@ -1,5 +1,3 @@
-// order_commands.go
-
 package command_handlers
 
 import (
