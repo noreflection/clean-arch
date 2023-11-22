@@ -3,10 +3,8 @@ package customer
 import (
 	"database/sql"
 	"go-cqrs/internal/domain"
-	//"gorm.io/gorm"
 )
 
-// CustomerService represents the service for orders.
 type CustomerService struct {
 	db *sql.DB
 }

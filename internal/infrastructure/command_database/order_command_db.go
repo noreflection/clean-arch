@@ -5,17 +5,14 @@ import (
 	"errors"
 )
 
-// OrderCommandDB is responsible for handling commands related to orders in the database.
 type OrderCommandDB struct {
 	db *sql.DB // Replace with your actual database connection
 }
 
-// NewOrderCommandDB creates a new instance of OrderCommandDB.
 func NewOrderCommandDB(db *sql.DB) *OrderCommandDB {
 	return &OrderCommandDB{db}
 }
 
-// CreateOrderCommand inserts a new order into the database.
 func (cdb *OrderCommandDB) CreateOrderCommand(orderData interface{}) error {
 	// Implement the logic to insert an order into the database
 	// Example:

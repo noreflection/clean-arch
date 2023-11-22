@@ -3,15 +3,12 @@ package customer
 import (
 	"database/sql"
 	"go-cqrs/internal/infrastructure/command_database"
-	//"gorm.io/gorm"
 )
 
-// CustomerRepository represents the repository for customers.
 type CustomerRepository struct {
 	db *sql.DB
 }
 
-// NewCustomerRepository creates a new customer repository.
 func NewCustomerRepository(db *sql.DB) *CustomerRepository {
 	return &CustomerRepository{db}
 }
@@ -53,5 +50,3 @@ func (r *CustomerRepository) Create(name, email string) (int64, error) {
 //
 //	return &customer, nil
 //}
-
-// Implement other customer-related repository functions here

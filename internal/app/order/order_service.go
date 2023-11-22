@@ -3,10 +3,8 @@ package order
 import (
 	"database/sql"
 	"go-cqrs/internal/domain"
-	//"gorm.io/gorm"
 )
 
-// OrderService represents the service for orders.
 type OrderService struct {
 	db *sql.DB
 }
@@ -39,5 +37,3 @@ func (s *OrderService) GetOrder(orderId string) (*domain.Order, error) {
 	//return &order, nil
 	return nil, nil
 }
-
-// Add other order-related service methods here

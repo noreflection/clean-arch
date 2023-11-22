@@ -2,7 +2,6 @@ package query_handlers
 
 import (
 	"fmt"
-	// Import any necessary packages
 )
 
 // OrderQueryResult represents the result of an order query.
@@ -29,7 +28,6 @@ func GetOrderQuery(orderID string) (*OrderQueryResult, error) {
 
 // ListOrdersQuery retrieves a list of all orders.
 func ListOrdersQuery() ([]*OrderQueryResult, error) {
-	// Implement the logic to retrieve a list of orders here
 	fmt.Println("Listing all orders...")
 	// Example: Perform database query, mapping, error handling, etc.
 	results := []*OrderQueryResult{

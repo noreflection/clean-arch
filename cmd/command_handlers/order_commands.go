@@ -6,22 +6,18 @@ import (
 	"go-cqrs/internal/infrastructure/event_store"
 )
 
-// OrderCommandHandler handles order-related commands.
 type OrderCommandHandler struct {
 	eventStore event_store.EventStore
 }
 
-// NewOrderCommandHandler creates a new instance of OrderCommandHandler.
 func NewOrderCommandHandler(eventStore event_store.EventStore) *OrderCommandHandler {
 	return &OrderCommandHandler{eventStore: eventStore}
 }
 
-// CreateOrderCommand is a command to create a new order.
 type CreateOrderCommand struct {
 	ID       string
 	Product  string
 	Quantity int
-	// Add other order attributes here
 }
 
 // HandleCreateOrderCommand handles the CreateOrderCommand.
@@ -44,5 +40,3 @@ func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd 
 
 	return nil
 }
-
-// Add other order-related commands and their handlers here

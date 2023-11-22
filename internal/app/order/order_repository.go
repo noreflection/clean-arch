@@ -22,7 +22,6 @@ func (r *OrderRepository) Create(order domain.Order) (int, error) {
 	if result.Error != nil {
 		return 0, errors.Wrap(result.Error, "failed to create order")
 	}
-
 	return order.ID, nil
 }
 
@@ -36,7 +35,6 @@ func (r *OrderRepository) Get(orderID int) (domain.Order, error) {
 		}
 		return domain.Order{}, errors.Wrap(result.Error, "failed to get order")
 	}
-
 	return order, nil
 }
 
@@ -46,11 +44,9 @@ func (r *OrderRepository) Update(order domain.Order) error {
 	if result.Error != nil {
 		return errors.Wrap(result.Error, "failed to update order")
 	}
-
 	if result.RowsAffected == 0 {
 		return errors.New("order not found")
 	}
-
 	return nil
 }
 
@@ -60,10 +56,8 @@ func (r *OrderRepository) Delete(orderID int) error {
 	if result.Error != nil {
 		return errors.Wrap(result.Error, "failed to delete order")
 	}
-
 	if result.RowsAffected == 0 {
 		return errors.New("order not found")
 	}
-
 	return nil
 }

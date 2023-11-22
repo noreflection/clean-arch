@@ -1,41 +1,33 @@
-// customer_commands.go
 package command_handlers
 
 import (
-	"context"
 	"database/sql"
 	"errors"
-	//"go-cqrs/internal/app/customer"
 	"go-cqrs/internal/domain"
+	"go-cqrs/internal/infrastructure/event_store"
 )
 
-// CustomerCommandHandler handles customer-related commands.
 type CustomerCommandHandler struct {
 	//eventStore event_store.EventStore
 	db      *sql.DB
 	service domain.CustomerService
 }
 
-// NewCustomerCommandHandler creates a new instance of CustomerCommandHandler.
-func NewCustomerCommandHandler(d *sql.DB) *CustomerCommandHandler {
+func NewCustomerCommandHandler(store event_store.EventStore, d *sql.DB) *CustomerCommandHandler {
 	return &CustomerCommandHandler{ /*eventStore: eventStore*/ db: d}
 }
 
-// CreateCustomerCommand is a command to create a new customer.
 type CreateCustomerCommand struct {
 	ID    string
 	Name  string
 	Email string
 }
 
-// HandleCreateCustomerCommand handles the CreateCustomerCommand.
-func (h *CustomerCommandHandler) HandleCreateCustomerCommand(ctx context.Context, cmd CreateCustomerCommand) error {
-	// Validate input
+func (h *CustomerCommandHandler) HandleCreateCustomerCommand(cmd CreateCustomerCommand) error {
 	if cmd.ID == "" || cmd.Name == "" || cmd.Email == "" {
 		return errors.New("customer ID, name, and email are required")
 	}
 
-	// Use the customer service to create a new customer
 	err := h.service.CreateCustomer(cmd.ID, cmd.Name, cmd.Email)
 	if err != nil {
 		return err
@@ -58,5 +50,3 @@ func (h *CustomerCommandHandler) HandleCreateCustomerCommand(ctx context.Context
 
 	//return nil
 }
-
-// Add other customer-related commands and their handlers here

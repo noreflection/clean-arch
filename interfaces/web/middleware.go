@@ -8,7 +8,7 @@ import (
 // Middleware is a function type for defining HTTP middleware.
 type Middleware func(http.Handler) http.Handler
 
-// LoggingMiddleware is an example middleware that logs incoming requests.
+// LoggingMiddleware is a middleware that logs incoming requests.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Perform logging or request tracking here
