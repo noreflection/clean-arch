@@ -30,6 +30,13 @@ func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Requ
 	// Parse the request body
 	var createCmd command_handlers.CreateOrderCommand
 	// Use your JSON parsing library here to decode the request body into createCmd
+	//var createCmd command_handlers.CreateOrderCommand
+	err := json.NewDecoder(r.Body).Decode(&createCmd)
+	if err != nil {
+		// Handle parsing error
+		HandleErrorResponse(w, err)
+		return
+	}
 
 	// Handle the create order command
 	if err := c.commandHandler.HandleCreateOrderCommand(r.Context(), createCmd); err != nil {

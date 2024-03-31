@@ -3,15 +3,17 @@ package command_handlers
 import (
 	"context"
 	"errors"
+	"go-cqrs/internal/app/impls"
 	"go-cqrs/internal/infrastructure/event_store"
 )
 
 type OrderCommandHandler struct {
 	eventStore event_store.EventStore
+	repo       impls.OrderRepositoryImpl
 }
 
-func NewOrderCommandHandler(eventStore event_store.EventStore) *OrderCommandHandler {
-	return &OrderCommandHandler{eventStore: eventStore}
+func NewOrderCommandHandler(eventStore event_store.EventStore, repo impls.OrderRepositoryImpl) *OrderCommandHandler {
+	return &OrderCommandHandler{eventStore: eventStore, repo: repo}
 }
 
 type CreateOrderCommand struct {

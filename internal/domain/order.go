@@ -1,34 +1,23 @@
 package domain
 
 import (
-	"fmt"
+	"database/sql"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
-	"strconv"
 )
 
 type Order struct {
-	gorm.Model
-	ID          int
-	CustomerID  string
-	Title       string
-	Description string
-	Price       int
+	ID       int // Changed ID type to int to match the provided id in NewOrder function
+	Product  string
+	Quantity int
 }
 
-func NewOrder(id string, product string, quantity int) (*Order, error) {
-	orderIDStr := generateUniqueID()
-	i, err := strconv.Atoi(orderIDStr)
-
-	if err != nil {
-		fmt.Println("Conversion error:", err)
-		return nil, err
-	}
-	customerID := generateUniqueID()
+func NewOrder(id int, product string, quantity int) (*Order, error) {
+	//customerID := generateUniqueID()
 
 	return &Order{
-		ID:         i,
-		CustomerID: customerID,
+		ID:       id,
+		Product:  product,
+		Quantity: quantity,
 	}, nil
 }
 
@@ -36,4 +25,21 @@ func generateUniqueID() string {
 	// You can use a library like "github.com/google/uuid" to generate UUIDs.
 	uniqueID := uuid.New().String()
 	return uniqueID
+}
+
+func SaveOrder(db *sql.DB, order *Order) error {
+	// Prepare the SQL statement
+	stmt, err := db.Prepare("INSERT INTO orders (id, product, quantity) VALUES ($1, $2, $3)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	// Execute the SQL statement
+	_, err = stmt.Exec(order.ID, order.Product, order.Quantity)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

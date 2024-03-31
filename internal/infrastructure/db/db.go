@@ -13,10 +13,20 @@ var (
 	err error
 )
 
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "your_username"
+	password = "your_password"
+	dbname   = "your_database"
+)
+
 // SetupDatabase configures database.
 func SetupDatabase() (*sql.DB, error) {
 	// Initialize the database connection
-	connectionString := "postgres://vultradmin:AVNS_4ijKKcYd-4-mdo65XBT@vultr-prod-5f785376-9e78-4398-86ef-5bd59e46afa8-vultr-prod-5c15.vultrdb.com:16751/defaultdb"
+	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	//connectionString := "host=localhost port=5432 user=your_username password=your_password dbname=your_database sslmode=disable"
 	db, err = sql.Open("postgres", connectionString)
 	if err != nil {
 		log.Fatal("Failed to open database connection:", err)
@@ -29,7 +39,7 @@ func SetupDatabase() (*sql.DB, error) {
 	}
 	fmt.Println("Database connection established successfully")
 
-	dbname := "core-service-db"
+	dbname := "your_database"
 
 	// Check if the database already exists
 	var dbExists bool
