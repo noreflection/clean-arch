@@ -3,16 +3,18 @@ package command_handlers
 import (
 	"context"
 	"errors"
-	"go-cqrs/internal/app/impls"
+	"go-cqrs/internal/app/order/repo"
+	"go-cqrs/internal/domain"
 	"go-cqrs/internal/infrastructure/event_store"
+	"log"
 )
 
 type OrderCommandHandler struct {
 	eventStore event_store.EventStore
-	repo       impls.OrderRepositoryImpl
+	repo       repo.OrderRepository
 }
 
-func NewOrderCommandHandler(eventStore event_store.EventStore, repo impls.OrderRepositoryImpl) *OrderCommandHandler {
+func NewOrderCommandHandler(eventStore event_store.EventStore, repo repo.OrderRepository) *OrderCommandHandler {
 	return &OrderCommandHandler{eventStore: eventStore, repo: repo}
 }
 
@@ -30,8 +32,11 @@ func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd 
 	}
 
 	// Create a new order entity
-	//o, _ := domain.NewOrder(cmd.ID, cmd.Product, cmd.Quantity)
-	//r, err = order.NewOrderRepository()
+	order, _ := domain.NewOrder(cmd.ID, cmd.Product, cmd.Quantity)
+	id, err := h.repo.Create(*order)
+	if err != nil {
+		log.Fatalf("Unable to create order with id %d: %v", id, err)
+	}
 	// Persist the order creation event
 	//event := event_store.NewOrderCreatedEvent(order.ID(), order.Product(), order.Quantity())
 	//if err := h.eventStore.StoreEvent(ctx, event); err != nil {

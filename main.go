@@ -7,8 +7,8 @@ import (
 	"go-cqrs/cmd/command_handlers"
 	"go-cqrs/interfaces/web"
 	"go-cqrs/internal/app/customer"
-	"go-cqrs/internal/app/impls"
 	"go-cqrs/internal/app/order"
+	"go-cqrs/internal/app/order/repo"
 	"go-cqrs/internal/infrastructure/db"
 	"go-cqrs/internal/infrastructure/event_store"
 	"gorm.io/driver/postgres"
@@ -26,7 +26,7 @@ func main() {
 	// Initialize repositories
 	//customerRepo := customer.NewCustomerRepository(database)
 	gormdb, _ := convertToGormDB(database)
-	orderRepo := impls.NewOrderRepository(gormdb)
+	orderRepo := repo.NewOrderRepository(gormdb)
 
 	// Initialize the customer command handler and controller
 	customerEventStore := event_store.NewEventStore("customer")
@@ -44,6 +44,7 @@ func main() {
 
 }
 
+// remove
 func convertToGormDB(db *sql.DB) (*gorm.DB, error) {
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,

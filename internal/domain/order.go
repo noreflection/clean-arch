@@ -6,12 +6,12 @@ import (
 )
 
 type Order struct {
-	ID       int // Changed ID type to int to match the provided id in NewOrder function
+	ID       string // Changed ID type to int to match the provided id in NewOrder function
 	Product  string
 	Quantity int
 }
 
-func NewOrder(id int, product string, quantity int) (*Order, error) {
+func NewOrder(id string, product string, quantity int) (*Order, error) {
 	//customerID := generateUniqueID()
 
 	return &Order{

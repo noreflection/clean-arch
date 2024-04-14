@@ -1,5 +1,4 @@
-// order/order_repository_impl.go
-package impls
+package repo
 
 import (
 	"github.com/pkg/errors"
@@ -7,24 +6,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type OrderRepositoryImpl struct {
+type OrderRepository struct {
 	db *gorm.DB
 }
 
-func NewOrderRepository(db *gorm.DB) *OrderRepositoryImpl {
-	return &OrderRepositoryImpl{db: db}
+func NewOrderRepository(db *gorm.DB) *OrderRepository {
+	return &OrderRepository{db: db}
 }
 
-func (r *OrderRepositoryImpl) Create(order domain.Order) (int, error) {
+func (r *OrderRepository) Create(order domain.Order) (string, error) {
 	// Insert a new order into the database and return the ID of the newly created order.
 	result := r.db.Create(&order)
 	if result.Error != nil {
-		return 0, errors.Wrap(result.Error, "failed to create order")
+		return "0", errors.Wrap(result.Error, "failed to create order")
 	}
 	return order.ID, nil
 }
 
-func (r *OrderRepositoryImpl) Get(orderID int) (domain.Order, error) {
+func (r *OrderRepository) Get(orderID int) (domain.Order, error) {
 	// Retrieve an order by ID from the database.
 	var order domain.Order
 	result := r.db.First(&order, orderID)
@@ -37,7 +36,7 @@ func (r *OrderRepositoryImpl) Get(orderID int) (domain.Order, error) {
 	return order, nil
 }
 
-func (r *OrderRepositoryImpl) Update(order domain.Order) error {
+func (r *OrderRepository) Update(order domain.Order) error {
 	// Update an existing order in the database.
 	result := r.db.Save(&order)
 	if result.Error != nil {
@@ -49,7 +48,7 @@ func (r *OrderRepositoryImpl) Update(order domain.Order) error {
 	return nil
 }
 
-func (r *OrderRepositoryImpl) Delete(orderID int) error {
+func (r *OrderRepository) Delete(orderID int) error {
 	// Delete an order by ID from the database.
 	result := r.db.Delete(&domain.Order{}, orderID)
 	if result.Error != nil {
