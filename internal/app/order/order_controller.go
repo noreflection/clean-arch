@@ -5,67 +5,67 @@ package order
 import (
 	"encoding/json"
 	"go-cqrs/cmd/command_handlers"
+	"go-cqrs/cmd/query_handlers"
 	"net/http"
 )
 
-// OrderController handles HTTP requests related to orders.
 type OrderController struct {
 	commandHandler *command_handlers.OrderCommandHandler
+	queryHandler   *query_handlers.OrderQueryHandler
 }
 
-// NewOrderController creates a new instance of OrderController.
-func NewOrderController(commandHandler *command_handlers.OrderCommandHandler) *OrderController {
-	return &OrderController{commandHandler: commandHandler}
+func NewOrderController(commandHandler *command_handlers.OrderCommandHandler, queryHandler *query_handlers.OrderQueryHandler) *OrderController {
+	return &OrderController{commandHandler: commandHandler, queryHandler: queryHandler}
 }
 
-// CreateOrderHandler is an HTTP handler for creating a new order.
 func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse request data and validate it
-	// For simplicity, let's assume the data is in JSON format
-	// You can use a JSON parsing library (e.g., encoding/json) to parse the request body
-	// Ensure you handle errors properly in a production-ready code
-
-	// Sample request body: {"ID": "1", "Product": "Product A", "Quantity": 5}
-
-	// Parse the request body
 	var createCmd command_handlers.CreateOrderCommand
-	// Use your JSON parsing library here to decode the request body into createCmd
-	//var createCmd command_handlers.CreateOrderCommand
 	err := json.NewDecoder(r.Body).Decode(&createCmd)
 	if err != nil {
-		// Handle parsing error
 		HandleErrorResponse(w, err)
 		return
 	}
 
-	// Handle the create order command
 	if err := c.commandHandler.HandleCreateOrderCommand(r.Context(), createCmd); err != nil {
-		// Handle command execution error (e.g., return a JSON response with an error message)
-		// HandleErrorResponse is a fictional function you should implement
 		HandleErrorResponse(w, err)
 		return
 	}
-
-	// Order created successfully, return a success response
-	// You can define a success response format and implement it here
-	// HandleSuccessResponse is a fictional function you should implement
-	HandleSuccessResponse(w, "Order created successfully")
+	HandleSuccessResponse(w, "Order created successfully") //todo: add returned id
 }
 
-// ErrorResponse Define a struct for error responses
+func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
+	var getQuery query_handlers.GetOrderQuery
+	err := json.NewDecoder(r.Body).Decode(&getQuery)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+
+	order, err := c.queryHandler.HandleGetOrderQuery(r.Context(), getQuery)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+
+	orderJSON, err := json.Marshal(order)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+	HandleSuccessResponse(w, string(orderJSON))
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-// SuccessResponse Define a struct for success responses
 type SuccessResponse struct {
 	Message string `json:"message"`
 }
 
-// HandleErrorResponse sends an error response with the specified error message.
 func HandleErrorResponse(w http.ResponseWriter, errorMessage error) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest) // You can set the appropriate HTTP status code for errors
+	w.WriteHeader(http.StatusBadRequest)
 
 	// Create and marshal the error response
 	response := ErrorResponse{Error: errorMessage.Error()}
@@ -85,10 +85,9 @@ func HandleErrorResponse(w http.ResponseWriter, errorMessage error) {
 	}
 }
 
-// HandleSuccessResponse sends a success response with the specified message.
 func HandleSuccessResponse(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK) // You can set the appropriate HTTP status code for success
+	w.WriteHeader(http.StatusOK)
 
 	// Create and marshal the success response
 	response := SuccessResponse{Message: message}

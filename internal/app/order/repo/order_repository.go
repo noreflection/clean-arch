@@ -15,11 +15,10 @@ func NewOrderRepository(db *sql.DB) *OrderRepository {
 }
 
 func (r *OrderRepository) Create(order domain.Order) (string, error) {
-	// Insert a new order into the database and return the ID of the newly created order.
 	var orderID string
 	err := r.db.QueryRow("INSERT INTO orders (product, quantity) VALUES ($1, $2) RETURNING id", order.Product, order.Quantity).Scan(&orderID)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create order")
+		return "", errors.Wrap(err, "Failed to create order")
 	}
 	return orderID, nil
 }
@@ -44,19 +43,12 @@ func (r *OrderRepository) Create(order domain.Order) (string, error) {
 //	return orderID, nil
 //}
 
-func (r *OrderRepository) getLastInsertedOrderID() (string, error) {
-	var orderID string
-	err := r.db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&orderID)
-	if err != nil {
-		return "", err
-	}
-	return orderID, nil
-}
-
-func (r *OrderRepository) Get(orderID string) (domain.Order, error) {
+func (r *OrderRepository) Get(orderID int) (domain.Order, error) {
 	// Retrieve an order by ID from the database.
 	var order domain.Order
-	err := r.db.QueryRow("SELECT * FROM Orders WHERE id = ?", orderID).Scan(&order.ID /* other fields */)
+	println("here")
+	println(orderID)
+	err := r.db.QueryRow("SELECT * FROM Orders WHERE id = $1", orderID).Scan(&order.ID /* other fields */)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Order{}, errors.Wrap(err, "order not found")

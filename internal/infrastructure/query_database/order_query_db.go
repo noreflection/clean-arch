@@ -5,6 +5,7 @@ import (
 	"errors"
 )
 
+// todo: clean this file from all that
 // OrderQueryDB is responsible for handling queries related to orders in the database.
 type OrderQueryDB struct {
 	db *sql.DB // Replace with your actual database connection

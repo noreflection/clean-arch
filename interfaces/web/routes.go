@@ -7,14 +7,12 @@ import (
 	"net/http"
 )
 
-func SetupRouter(
-	customerController customer.CustomerController,
-	orderController order.OrderController) *mux.Router {
+func SetupRouter(customerController customer.CustomerController, orderController order.OrderController) *mux.Router {
 	router := mux.NewRouter()
 
 	// Order routes
 	router.HandleFunc("/orders", orderController.CreateOrderHandler).Methods(http.MethodPost)
-	router.HandleFunc("/orders/{id}", orderController.CreateOrderHandler).Methods(http.MethodGet)
+	router.HandleFunc("/orders/{id}", orderController.GetOrderHandler).Methods(http.MethodGet)
 
 	// Customer routes
 	router.HandleFunc("/customers", customerController.CreateCustomerHandler).Methods(http.MethodPost)

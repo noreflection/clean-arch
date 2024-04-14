@@ -3,8 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
-
 	_ "github.com/lib/pq"
 )
 
@@ -18,49 +16,27 @@ const (
 	port     = 5432
 	user     = "your_username"
 	password = "your_password"
-	dbname   = "your_database"
+	dbname   = "app_database"
 )
 
-// SetupDatabase configures database.
 func SetupDatabase() (*sql.DB, error) {
-	// Initialize the database connection
 	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	//connectionString := "host=localhost port=5432 user=your_username password=your_password dbname=your_database sslmode=disable"
 	db, err = sql.Open("postgres", connectionString)
 	if err != nil {
-		log.Fatal("Failed to open database connection:", err)
+		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
-	// If Ping() succeeds, you have a valid database connection
 	err = db.Ping()
 	if err != nil {
-		log.Fatal("Database connection failed:", err)
+		return nil, fmt.Errorf("database connection failed: %w", err)
 	}
 	fmt.Println("Database connection established successfully")
 
-	dbname := "your_database"
-
-	// Check if the database already exists
 	var dbExists bool
-	err = db.QueryRow("SELECT EXISTS(SELECT datname FROM pg_database WHERE datname=$1)", dbname).Scan(&dbExists)
-	if err != nil {
-		log.Fatal(err)
+	if err := db.QueryRow("SELECT EXISTS(SELECT datname FROM pg_database WHERE datname=$1)", dbname).Scan(&dbExists); err != nil {
+		return nil, fmt.Errorf("failed to check database existence: %w", err)
 	}
 
-	if !dbExists {
-		// Database does not exist, so create it
-		_, err := db.Exec("CREATE DATABASE " + dbname) // Capture the result and ignore it
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("Database '%s' created.\n", dbname)
-	} else {
-		fmt.Printf("Database '%s' already exists.\n", dbname)
-	}
-
-	// Note: Do not close the database connection here.
-	// The caller of this function should be responsible for closing it.
-
-	return db, err
+	return db, nil
 }

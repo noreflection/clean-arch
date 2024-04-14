@@ -1,42 +1,30 @@
 package query_handlers
 
 import (
+	"context"
 	"fmt"
+	"go-cqrs/internal/app/order/repo"
+	"go-cqrs/internal/domain"
 )
 
-// OrderQueryResult represents the result of an order query.
-type OrderQueryResult struct {
-	// Define the fields you want to return in the query result
-	ID          string
-	CustomerID  string
-	ProductName string
-	// Add more fields as needed
+// OrderQueryHandler handles queries related to orders.
+type OrderQueryHandler struct {
+	orderRepo repo.OrderRepository
 }
 
-// GetOrderQuery retrieves an order by ID.
-func GetOrderQuery(orderID string) (*OrderQueryResult, error) {
-	// Implement the logic to retrieve an order by ID here
-	fmt.Println("Getting an order by ID...")
-	// Example: Perform database query, mapping, error handling, etc.
-	result := &OrderQueryResult{
-		ID:          orderID,
-		CustomerID:  "1",
-		ProductName: "Example Product",
-	}
-	return result, nil
+// NewOrderQueryHandler creates a new instance of OrderQueryHandler.
+func NewOrderQueryHandler(orderRepo repo.OrderRepository) *OrderQueryHandler {
+	return &OrderQueryHandler{orderRepo: orderRepo}
 }
 
-// ListOrdersQuery retrieves a list of all orders.
-func ListOrdersQuery() ([]*OrderQueryResult, error) {
-	fmt.Println("Listing all orders...")
-	// Example: Perform database query, mapping, error handling, etc.
-	results := []*OrderQueryResult{
-		{
-			ID:          "1",
-			CustomerID:  "1",
-			ProductName: "Example Product",
-		},
-		// Add more orders as needed
+type GetOrderQuery struct {
+	ID int
+}
+
+func (qh *OrderQueryHandler) HandleGetOrderQuery(ctx context.Context, query GetOrderQuery) (domain.Order, error) {
+	order, err := qh.orderRepo.Get(query.ID)
+	if err != nil {
+		return domain.Order{}, fmt.Errorf("failed to retrieve order by ID: %w", err)
 	}
-	return results, nil
+	return order, nil
 }
