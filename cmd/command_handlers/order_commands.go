@@ -27,8 +27,8 @@ type CreateOrderCommand struct {
 // HandleCreateOrderCommand handles the CreateOrderCommand.
 func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd CreateOrderCommand) error {
 	// Validate input
-	if cmd.ID == "" || cmd.Product == "" || cmd.Quantity <= 0 {
-		return errors.New("order ID, product, and valid quantity are required")
+	if cmd.Product == "" || cmd.Quantity <= 0 {
+		return errors.New("product, and valid quantity are required")
 	}
 
 	// Create a new order entity
