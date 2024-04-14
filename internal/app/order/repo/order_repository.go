@@ -46,9 +46,7 @@ func (r *OrderRepository) Create(order domain.Order) (string, error) {
 func (r *OrderRepository) Get(orderID int) (domain.Order, error) {
 	// Retrieve an order by ID from the database.
 	var order domain.Order
-	println("here")
-	println(orderID)
-	err := r.db.QueryRow("SELECT * FROM Orders WHERE id = $1", orderID).Scan(&order.ID /* other fields */)
+	err := r.db.QueryRow("SELECT * FROM Orders WHERE id = $1", orderID).Scan(&order.ID, &order.CustomerId, &order.Product, &order.Quantity)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.Order{}, errors.Wrap(err, "order not found")

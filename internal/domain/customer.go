@@ -14,7 +14,7 @@ type Customer struct {
 
 func NewCustomer(name string, email string) *Customer {
 	// Generate a unique ID for the customer (you can use any method you prefer).
-	customerID := generateUniqueID()
+	var customerID string
 
 	return &Customer{
 		ID:    customerID,

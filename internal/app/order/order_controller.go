@@ -4,9 +4,12 @@ package order
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/gorilla/mux"
 	"go-cqrs/cmd/command_handlers"
 	"go-cqrs/cmd/query_handlers"
 	"net/http"
+	"strconv"
 )
 
 type OrderController struct {
@@ -35,12 +38,24 @@ func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Requ
 
 func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
 	var getQuery query_handlers.GetOrderQuery
-	err := json.NewDecoder(r.Body).Decode(&getQuery)
-	if err != nil {
-		HandleErrorResponse(w, err)
+	// Extract the order ID from the URL path parameter
+	vars := mux.Vars(r)
+	orderIDStr, ok := vars["id"]
+	if !ok {
+		HandleErrorResponse(w, fmt.Errorf("order ID not found in URL"))
 		return
 	}
 
+	// Convert the order ID string to an integer
+	orderID, err := strconv.Atoi(orderIDStr)
+	if err != nil {
+		HandleErrorResponse(w, fmt.Errorf("invalid order ID: %s", orderIDStr))
+		return
+	}
+
+	getQuery.ID = orderID
+
+	// Handle the order query
 	order, err := c.queryHandler.HandleGetOrderQuery(r.Context(), getQuery)
 	if err != nil {
 		HandleErrorResponse(w, err)
