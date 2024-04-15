@@ -1,23 +1,28 @@
 package query_handlers
 
-import "go-cqrs/internal/domain"
+import (
+	"context"
+	"fmt"
+	"go-cqrs/internal/app"
+	"go-cqrs/internal/domain"
+)
 
 type CustomerQueryHandler struct {
-	// You can add dependencies or fields needed for query handling here.
+	customerRepo app.Repository[domain.Customer]
 }
 
-func NewCustomerQueryHandler() *CustomerQueryHandler {
-	return &CustomerQueryHandler{}
+func NewCustomerQueryHandler(customerRepo app.Repository[domain.Customer]) *CustomerQueryHandler {
+	return &CustomerQueryHandler{customerRepo: customerRepo}
 }
 
-// GetCustomerQuery retrieves a customer by their ID.
-func (h *CustomerQueryHandler) GetCustomerQuery(customerID string) (*domain.Customer, error) {
-	// Add logic to retrieve a customer by ID here.
-	return nil, nil
+type GetCustomerQuery struct {
+	ID int
 }
 
-// ListCustomersQuery retrieves a list of customers.
-func (h *CustomerQueryHandler) ListCustomersQuery() ([]*domain.Customer, error) {
-	// Add logic to retrieve a list of customers here.
-	return nil, nil
+func (h *CustomerQueryHandler) HandleGetCustomerQuery(ctx context.Context, query GetCustomerQuery) (interface{}, error) {
+	customer, err := h.customerRepo.Get(ctx, query.ID)
+	if err != nil {
+		return domain.Customer{}, fmt.Errorf("failed to retrieve customer by ID: %w", err)
+	}
+	return customer, nil
 }

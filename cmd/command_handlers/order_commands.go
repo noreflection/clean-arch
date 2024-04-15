@@ -5,16 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"go-cqrs/internal/app"
+	"go-cqrs/internal/domain"
 	"go-cqrs/internal/infrastructure/event_store"
 	"log"
 )
 
 type OrderCommandHandler struct {
 	eventStore event_store.EventStore
-	service    app.Service
+	service    app.Service[domain.Order]
 }
 
-func NewOrderCommandHandler(eventStore event_store.EventStore, service app.Service) *OrderCommandHandler {
+func NewOrderCommandHandler(eventStore event_store.EventStore, service app.Service[domain.Order]) *OrderCommandHandler {
 	return &OrderCommandHandler{eventStore: eventStore, service: service}
 }
 
@@ -32,7 +33,8 @@ func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd 
 		return 0, errors.New("quantity must be greater than zero")
 	}
 
-	id, err := h.service.Create(ctx, cmd.ID, cmd.Product, cmd.Quantity)
+	var order domain.Order
+	id, err := h.service.Create(ctx, cmd.ID, order)
 	if err != nil {
 		log.Fatalf("Unable to create order with id %d: %v", id, err)
 	}
@@ -70,7 +72,8 @@ func (h *OrderCommandHandler) HandleUpdateOrderCommand(ctx context.Context, cmd 
 		return errors.New("ID is required")
 	}
 
-	err := h.service.Update(ctx, cmd.ID, cmd.Quantity, cmd.Product)
+	var order domain.Order
+	err := h.service.Update(ctx, cmd.ID, order)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to update order: %s", err))
 	}

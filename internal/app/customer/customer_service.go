@@ -18,16 +18,16 @@ func NewService(customerRepo app.Repository[domain.Customer]) *Service {
 	return &Service{customerRepo: customerRepo}
 }
 
-func (s *Service) Create(ctx context.Context, name string, email string) (int, error) {
+func (s *Service) Create(ctx context.Context, id int, customer domain.Customer) (int, error) {
 	// Additional validation or business logic should be performed here
 	// For example, checking if the customer exists or if the user is allowed to create orders
-	c := domain.NewCustomer(name, email)
+	c := domain.NewCustomer(customer.Name, customer.Email)
 	orderID, err := s.customerRepo.Create(ctx, *c)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to create order")
 	}
 
-	var id int
+	//var id int
 	id, err = s.customerRepo.Create(ctx, *c)
 	if err != nil {
 		log.Fatalf("Unable to create order with id %d: %v", id, err)
@@ -48,13 +48,13 @@ func (s *Service) Delete(ctx context.Context, id int) error {
 	return err
 }
 
-func (s *Service) Update(ctx context.Context, id int, name string, email string) error {
+func (s *Service) Update(ctx context.Context, id int, customer domain.Customer) error {
 	if err := s.checkCustomerExists(ctx, id); err != nil {
 		return err
 	}
 
-	customer := domain.NewCustomer(name, email)
-	err := s.customerRepo.Update(ctx, *customer)
+	//customer := domain.NewCustomer(name, email)
+	err := s.customerRepo.Update(ctx, customer)
 	if err != nil {
 		return err
 	}

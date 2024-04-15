@@ -35,11 +35,12 @@ func main() {
 	orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
 	orderController := order.NewOrderController(orderCommandHandler, orderQueryHandler)
 
-	//customerRepo := customer.NewRepository(database)
-	//customerService := customer.NewService(customerRepo)
+	customerRepo := customer.NewRepository(database)
+	customerService := customer.NewService(customerRepo)
 	customerEventStore := event_store.NewEventStore("customer")
-	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, database)
-	customerController := customer.NewCustomerController(customerCommandHandler)
+	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, customerService)
+	customerQueryHandler := query_handlers.NewCustomerQueryHandler(customerRepo)
+	customerController := customer.NewCustomerController(&customerCommandHandler, customerQueryHandler) //
 
 	router := web.SetupRouter(*customerController, *orderController)
 	fmt.Println("Server is running on localhost:8080...")

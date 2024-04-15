@@ -2,50 +2,121 @@ package customer
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-cqrs/cmd/command_handlers"
+	"go-cqrs/cmd/query_handlers"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type Controller struct {
 	commandHandler *command_handlers.CustomerCommandHandler
+	queryHandler   *query_handlers.CustomerQueryHandler
 }
 
-func NewCustomerController(commandHandler *command_handlers.CustomerCommandHandler) *Controller {
-	return &Controller{commandHandler: commandHandler}
+func NewCustomerController(commandHandler *command_handlers.CustomerCommandHandler, queryHandler *query_handlers.CustomerQueryHandler) *Controller {
+	return &Controller{commandHandler: commandHandler, queryHandler: queryHandler}
 }
 
 func (c *Controller) CreateCustomerHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse request data and validate it
-	// For simplicity, let's assume the data is in JSON format
-	// You can use a JSON parsing library (e.g., encoding/json) to parse the request body
-	// Ensure you handle errors properly in a production-ready code
-
-	// Sample request body: {"ID": "1", "Name": "John Doe", "Email": "john@example.com"}
-
 	var createCmd command_handlers.CreateCustomerCommand
-	// Use your JSON parsing library here to decode the request body into createCmd
-	if err := c.commandHandler.HandleCreateCustomerCommand(createCmd); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&createCmd)
+	if err != nil {
 		HandleErrorResponse(w, err)
 		return
 	}
-	HandleSuccessResponse(w, "Customer created successfully")
+	defer r.Body.Close()
+
+	CustomerId, err := c.commandHandler.HandleCreateCustomerCommand(r.Context(), createCmd)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+	HandleSuccessResponse(w, fmt.Sprintf("Customer with id: %d created", CustomerId))
+}
+
+func (c *Controller) GetCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	CustomerIDStr := mux.Vars(r)["id"]
+	CustomerID, err := strconv.Atoi(CustomerIDStr)
+	if err != nil {
+		HandleErrorResponse(w, fmt.Errorf("invalid Customer ID: %s", CustomerIDStr))
+		return
+	}
+
+	getQuery := query_handlers.GetCustomerQuery{ID: CustomerID}
+	Customer, err := c.queryHandler.HandleGetCustomerQuery(r.Context(), getQuery)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+	HandleSuccessResponse(w, Customer)
+}
+
+func (c *Controller) DeleteCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	CustomerIDStr, ok := vars["id"]
+	if !ok {
+		HandleErrorResponse(w, fmt.Errorf("Customer ID not found in URL"))
+		return
+	}
+
+	CustomerID, err := strconv.Atoi(CustomerIDStr)
+	if err != nil {
+		HandleErrorResponse(w, fmt.Errorf("invalid Customer ID: %s", CustomerIDStr))
+		return
+	}
+
+	deleteCmd := command_handlers.DeleteCustomerCommand{ID: CustomerID}
+	err = c.commandHandler.HandleDeleteCustomerCommand(r.Context(), deleteCmd)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+	HandleSuccessResponse(w, fmt.Sprintf("Customer ID:%d has been successfully deleted", CustomerID))
+}
+
+func (c *Controller) UpdateCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	CustomerIDStr, ok := vars["id"]
+	if !ok {
+		HandleErrorResponse(w, fmt.Errorf("Customer ID not found in URL"))
+		return
+	}
+
+	CustomerID, err := strconv.Atoi(CustomerIDStr)
+	if err != nil {
+		HandleErrorResponse(w, fmt.Errorf("invalid Customer ID: %s", CustomerIDStr))
+		return
+	}
+
+	var updateCmd command_handlers.UpdateCustomerCommand
+	err = json.NewDecoder(r.Body).Decode(&updateCmd)
+	if err != nil {
+		HandleErrorResponse(w, fmt.Errorf("failed to parse request body: %v", err))
+		return
+	}
+	defer r.Body.Close()
+
+	updateCmd.ID = CustomerID
+	err = c.commandHandler.HandleUpdateCustomerCommand(r.Context(), updateCmd)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+	HandleSuccessResponse(w, fmt.Sprintf("Customer ID:%d has been successfully updated", CustomerID))
 }
 
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-type SuccessResponse struct {
-	Message string `json:"message"`
-}
-
-// HandleErrorResponse sends an error response with the specified error message.
 func HandleErrorResponse(w http.ResponseWriter, errorMessage error) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest) // You can set the appropriate HTTP status code for errors
+	w.WriteHeader(http.StatusBadRequest)
 
-	// Create and marshal the error response
-	response := ErrorResponse{Error: errorMessage.Error()}
+	response := map[string]string{"error": errorMessage.Error()}
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -59,12 +130,11 @@ func HandleErrorResponse(w http.ResponseWriter, errorMessage error) {
 	}
 }
 
-func HandleSuccessResponse(w http.ResponseWriter, message string) {
+func HandleSuccessResponse(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK) // You can set the appropriate HTTP status code for success
-	response := SuccessResponse{Message: message}
-	jsonResponse, err := json.Marshal(response)
+	w.WriteHeader(http.StatusOK)
 
+	jsonResponse, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
