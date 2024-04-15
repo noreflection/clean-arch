@@ -1,5 +1,3 @@
-// order_controller.go
-
 package order
 
 import (
@@ -33,11 +31,10 @@ func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Requ
 		HandleErrorResponse(w, err)
 		return
 	}
-	HandleSuccessResponse(w, "Order created successfully") //todo: add returned id
+	HandleSuccessResponse(w, "order created successfully") //todo: add returned id
 }
 
 func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
-	var getQuery query_handlers.GetOrderQuery
 	vars := mux.Vars(r)
 	orderIDStr, ok := vars["id"]
 	if !ok {
@@ -45,16 +42,13 @@ func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Convert the order ID string to an integer
 	orderID, err := strconv.Atoi(orderIDStr)
 	if err != nil {
 		HandleErrorResponse(w, fmt.Errorf("invalid order ID: %s", orderIDStr))
 		return
 	}
 
-	getQuery.ID = orderID
-
-	// Handle the order query
+	getQuery := query_handlers.GetOrderQuery{ID: orderID}
 	order, err := c.queryHandler.HandleGetOrderQuery(r.Context(), getQuery)
 	if err != nil {
 		HandleErrorResponse(w, err)
@@ -70,29 +64,62 @@ func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (c *OrderController) DeleteOrderHandler(w http.ResponseWriter, r *http.Request) {
-	var deleteCmd command_handlers.DeleteOrderCommand
 	vars := mux.Vars(r)
 	orderIDStr, ok := vars["id"]
 	if !ok {
 		HandleErrorResponse(w, fmt.Errorf("order ID not found in URL"))
 		return
 	}
-	fmt.Printf(orderIDStr)
 
-	// Convert the order ID string to an integer
 	orderID, err := strconv.Atoi(orderIDStr)
 	if err != nil {
 		HandleErrorResponse(w, fmt.Errorf("invalid order ID: %s", orderIDStr))
 		return
 	}
-	deleteCmd.ID = orderID
 
+	deleteCmd := command_handlers.DeleteOrderCommand{ID: orderID}
 	err = c.commandHandler.HandleDeleteOrderCommand(r.Context(), deleteCmd)
 	if err != nil {
 		HandleErrorResponse(w, err)
 		return
 	}
-	HandleSuccessResponse(w, fmt.Sprintf("Order ID:%d has been successfully deleted", orderID))
+	HandleSuccessResponse(w, fmt.Sprintf("order ID:%d has been successfully deleted", orderID))
+}
+
+func (c *OrderController) UpdateOrderHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	orderIDStr, ok := vars["id"]
+	if !ok {
+		HandleErrorResponse(w, fmt.Errorf("order ID not found in URL"))
+		return
+	}
+
+	orderID, err := strconv.Atoi(orderIDStr)
+	if err != nil {
+		HandleErrorResponse(w, fmt.Errorf("invalid order ID: %s", orderIDStr))
+		return
+	}
+
+	// Parse the request body to get the updated order data
+	var updateCmd command_handlers.UpdateOrderCommand
+	err = json.NewDecoder(r.Body).Decode(&updateCmd)
+	if err != nil {
+		HandleErrorResponse(w, fmt.Errorf("failed to parse request body: %v", err))
+		return
+	}
+
+	// Set the ID in the update command
+	updateCmd.ID = strconv.Itoa(orderID)
+
+	// Call the command handler to update the order
+	err = c.commandHandler.HandleUpdateOrderCommand(r.Context(), updateCmd)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+
+	// Respond with a success message
+	HandleSuccessResponse(w, fmt.Sprintf("Order ID:%d has been successfully updated", orderID))
 }
 
 type ErrorResponse struct {

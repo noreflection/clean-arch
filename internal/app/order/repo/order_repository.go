@@ -57,10 +57,13 @@ func (r *OrderRepository) Get(orderID int) (domain.Order, error) {
 }
 
 func (r *OrderRepository) Update(order domain.Order) error {
-	// Update an existing order in the database.
-	_, err := r.db.Exec("UPDATE Orders SET ... WHERE id = ?", order.ID /* other fields */)
+	// Construct the SQL query to update the order
+	query := "UPDATE Orders SET product = $1, quantity = $2 WHERE id = $3"
+
+	// Execute the SQL query with the updated values
+	_, err := r.db.Exec(query, order.Product, order.Quantity, order.ID)
 	if err != nil {
-		return errors.Wrap(err, "failed to update order")
+		return errors.Wrap(err, "failed to update order in repository")
 	}
 	return nil
 }
