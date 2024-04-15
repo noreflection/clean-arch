@@ -11,7 +11,7 @@ type Order struct {
 	Quantity   int
 }
 
-func NewOrder(id int, product string, quantity int) (*Order, error) {
+func NewOrder(id int, product string, quantity int) (*Order, error) { // todo:
 	return &Order{
 		ID:       id,
 		Product:  product,

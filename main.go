@@ -28,21 +28,20 @@ func main() {
 	//orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
 
 	//customerRepo := customer.NewCustomerRepository(database)
-	orderRepo := order.NewOrderRepository(database)
-	orderService := order.NewOrderService(orderRepo)
-
-	// Initialize the customer command handler and controller
-	customerEventStore := event_store.NewEventStore("customer") //todo: impl eventstore
-	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, database)
-	customerController := customer.NewCustomerController(customerCommandHandler)
-
-	// Initialize the order command handler and controller
+	orderRepo := order.NewRepository(database)
+	orderService := order.NewService(orderRepo)
 	orderEventStore := event_store.NewEventStore("order")
-	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, orderService, database)
+	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, orderService)
 	orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
 	orderController := order.NewOrderController(orderCommandHandler, orderQueryHandler)
 
+	//customerRepo := customer.NewRepository(database)
+	//customerService := customer.NewService(customerRepo)
+	customerEventStore := event_store.NewEventStore("customer")
+	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, database)
+	customerController := customer.NewCustomerController(customerCommandHandler)
+
 	router := web.SetupRouter(*customerController, *orderController)
-	fmt.Println("Server is running on :8080...")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	fmt.Println("Server is running on localhost:8080...")
+	log.Fatal(http.ListenAndServe("localhost:8080", router))
 }

@@ -1,52 +1,61 @@
 package customer
 
 import (
+	"context"
 	"database/sql"
+
+	"github.com/pkg/errors"
+	"go-cqrs/internal/domain"
 )
 
-type CustomerRepository struct {
+type Repository struct {
 	db *sql.DB
 }
 
-func NewCustomerRepository(db *sql.DB) *CustomerRepository {
-	return &CustomerRepository{db}
+func NewRepository(db *sql.DB) *Repository {
+	return &Repository{db: db}
 }
 
-// Create inserts a new customer record into the database.
-func (r *CustomerRepository) Create(name, email string) (int64, error) {
-	//cmdDB := command_database.NewCustomerCommandDB(r.db)
-	//return cmdDB.Create(name, email)
-	// Validate input, perform any necessary business logic, etc.
-	//customer := domain.Customer{ID: id, Name: name, Email: email}
-	//// Execute SQL insert statement to create a new customer
-	//_, err := r.db.Exec("INSERT INTO customers (name) VALUES (?)", customer.Name)
-	//if err != nil {
-	//	// Handle the error, such as rolling back a transaction or logging
-	//	return err
-	//}
-	//
-	//// If the insert was successful, you can update the customer ID field
-	//// with the generated ID if needed (e.g., for auto-incrementing primary keys).
-	//
-	//return nil
-	return 0, nil
+func (r *Repository) Create(ctx context.Context, customer domain.Customer) (int, error) {
+	var orderID int
+	err := r.db.QueryRow("INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id", customer.Name, customer.Email).Scan(&orderID)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to create order")
+	}
+	return orderID, nil
 }
 
-// GetCustomerByID retrieves a customer record from the database by ID.
-//func (r *CustomerRepository) GetCustomerByID(customerID int) (*Customer, error) {
-//	// Execute SQL query to retrieve customer by ID
-//	row := r.db.QueryRow("SELECT id, name FROM customers WHERE id = ?", customerID)
-//
-//	var customer Customer
-//	err := row.Scan(&customer.ID, &customer.Name)
-//	if err != nil {
-//		if errors.Is(err, sql.ErrNoRows) {
-//			// Handle the case where no customer with the given ID was found
-//			return nil, nil
-//		}
-//		// Handle other errors
-//		return nil, err
-//	}
-//
-//	return &customer, nil
-//}
+func (r *Repository) Get(ctx context.Context, orderID int) (domain.Customer, error) {
+	var customer domain.Customer
+	err := r.db.QueryRow("SELECT * FROM cutomers WHERE id = $1", orderID).Scan(&customer.ID, &customer.Name, &customer.Email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Customer{}, errors.Wrap(err, "failed to find customer")
+		}
+		return domain.Customer{}, errors.Wrap(err, "failed to get customer")
+	}
+	return customer, nil
+}
+
+func (r *Repository) Update(ctx context.Context, customer domain.Customer) error {
+	query := "UPDATE customers SET name = $1, email = $2 WHERE id = $3"
+	_, err := r.db.Exec(query, customer.Name, customer.Email)
+	if err != nil {
+		return errors.Wrap(err, "failed to update customer")
+	}
+	return nil
+}
+
+func (r *Repository) Delete(ctx context.Context, id int) error {
+	stmt, err := r.db.Prepare("DELETE FROM customers WHERE id = $1")
+	if err != nil {
+		return errors.Wrap(err, "failed to prepare statement for deleting customer")
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete customer")
+	}
+	return nil
+}

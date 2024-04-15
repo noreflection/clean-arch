@@ -2,14 +2,9 @@ package command_handlers
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"go-cqrs/internal/app"
-	//"go-cqrs/internal/app/order"
-	//"go-cqrs/internal/app/order/repo"
-
-	//"go-cqrs/internal/app/order"
 	"go-cqrs/internal/infrastructure/event_store"
 	"log"
 )
@@ -19,7 +14,7 @@ type OrderCommandHandler struct {
 	service    app.Service
 }
 
-func NewOrderCommandHandler(eventStore event_store.EventStore, service app.Service, database *sql.DB) *OrderCommandHandler {
+func NewOrderCommandHandler(eventStore event_store.EventStore, service app.Service) *OrderCommandHandler {
 	return &OrderCommandHandler{eventStore: eventStore, service: service}
 }
 

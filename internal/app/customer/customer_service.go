@@ -1,34 +1,73 @@
 package customer
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
+	"github.com/pkg/errors"
+	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
+	"log"
 )
 
-type CustomerService struct {
-	db *sql.DB
+type Service struct {
+	customerRepo app.Repository[domain.Customer]
 }
 
-func NewService(db *sql.DB) *CustomerService {
-	return &CustomerService{
-		db: db,
+func NewService(customerRepo app.Repository[domain.Customer]) *Service {
+	return &Service{customerRepo: customerRepo}
+}
+
+func (s *Service) Create(ctx context.Context, name string, email string) (int, error) {
+	// Additional validation or business logic should be performed here
+	// For example, checking if the customer exists or if the user is allowed to create orders
+	c := domain.NewCustomer(name, email)
+	orderID, err := s.customerRepo.Create(ctx, *c)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to create order")
 	}
+
+	var id int
+	id, err = s.customerRepo.Create(ctx, *c)
+	if err != nil {
+		log.Fatalf("Unable to create order with id %d: %v", id, err)
+	}
+	// Any additional logic after creating the order can be added here
+	return orderID, nil
+
 }
 
-func (s *CustomerService) CreateCustomer(name, email string) (int64, error) {
-	cr := NewCustomerRepository(s.db)
-	return cr.Create(name, email)
+func (s *Service) Delete(ctx context.Context, id int) error {
+	if err := s.checkCustomerExists(ctx, id); err != nil {
+		return err
+	}
+	err := s.customerRepo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
-func (s *CustomerService) GetCustomer(customerID string) (*domain.Customer, error) {
-	// Implement the GetOrder method with GORM
-	//var order domain.Customer
-	//result := s.db.First(&order, "id = ?", customerID)
-	//if result.Error != nil {
-	//	return nil, result.Error
-	//}
+func (s *Service) Update(ctx context.Context, id int, name string, email string) error {
+	if err := s.checkCustomerExists(ctx, id); err != nil {
+		return err
+	}
 
-	return nil, nil
+	customer := domain.NewCustomer(name, email)
+	err := s.customerRepo.Update(ctx, *customer)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
-// Add other order-related service methods here
+func (s *Service) checkCustomerExists(ctx context.Context, orderID int) error {
+	_, err := s.customerRepo.Get(ctx, orderID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("customer with ID %d not found", orderID)
+		}
+		return errors.Wrap(err, "failed to check if customer exists")
+	}
+	return nil
+}
