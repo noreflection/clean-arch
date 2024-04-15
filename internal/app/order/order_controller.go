@@ -115,7 +115,7 @@ func HandleErrorResponse(w http.ResponseWriter, errorMessage error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 
-	response := ErrorResponse{Error: errorMessage.Error()}
+	response := map[string]string{"error": errorMessage.Error()}
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

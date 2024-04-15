@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
 	"go-cqrs/cmd/command_handlers"
@@ -10,6 +9,7 @@ import (
 	"go-cqrs/internal/app/customer"
 	"go-cqrs/internal/app/order"
 	"go-cqrs/internal/app/order/repo"
+	"go-cqrs/internal/app/order/service"
 	"go-cqrs/internal/infrastructure/db"
 	"go-cqrs/internal/infrastructure/event_store"
 	"log"
@@ -22,16 +22,16 @@ func main() {
 		log.Printf("Unable to setup database: %v", err)
 		return
 	}
-	defer func(database *sql.DB) {
-		err := database.Close()
-		if err != nil {
-			log.Printf("Unable to close the connection to databaseL %v", err)
-		}
-	}(database)
+	defer database.Close()
 
-	// Initialize repositories
+	//orderRepo := order.NewRepository()
+	//orderService := order.NewService(orderRepo)
+	//orderCommandHandler := command_handlers.NewOrderCommandHandler(orderService)
+	//orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
+
 	//customerRepo := customer.NewCustomerRepository(database)
 	orderRepo := repo.NewOrderRepository(database)
+	orderService := service.NewOrderService(*orderRepo)
 
 	// Initialize the customer command handler and controller
 	customerEventStore := event_store.NewEventStore("customer") //todo: impl eventstore
@@ -40,7 +40,7 @@ func main() {
 
 	// Initialize the order command handler and controller
 	orderEventStore := event_store.NewEventStore("order")
-	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, *orderRepo)
+	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, *orderRepo, *orderService)
 	orderQueryHandler := query_handlers.NewOrderQueryHandler(*orderRepo)
 	orderController := order.NewOrderController(orderCommandHandler, orderQueryHandler)
 

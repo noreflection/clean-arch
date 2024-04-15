@@ -2,7 +2,6 @@ package customer
 
 import (
 	"database/sql"
-	"go-cqrs/internal/infrastructure/command_database"
 )
 
 type CustomerRepository struct {
@@ -15,8 +14,8 @@ func NewCustomerRepository(db *sql.DB) *CustomerRepository {
 
 // Create inserts a new customer record into the database.
 func (r *CustomerRepository) Create(name, email string) (int64, error) {
-	cmdDB := command_database.NewCustomerCommandDB(r.db)
-	return cmdDB.Create(name, email)
+	//cmdDB := command_database.NewCustomerCommandDB(r.db)
+	//return cmdDB.Create(name, email)
 	// Validate input, perform any necessary business logic, etc.
 	//customer := domain.Customer{ID: id, Name: name, Email: email}
 	//// Execute SQL insert statement to create a new customer
@@ -30,6 +29,7 @@ func (r *CustomerRepository) Create(name, email string) (int64, error) {
 	//// with the generated ID if needed (e.g., for auto-incrementing primary keys).
 	//
 	//return nil
+	return 0, nil
 }
 
 // GetCustomerByID retrieves a customer record from the database by ID.

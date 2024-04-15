@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go-cqrs/internal/app/order/service"
+
 	"go-cqrs/internal/app/order/repo"
 	"go-cqrs/internal/domain"
 	"go-cqrs/internal/infrastructure/event_store"
@@ -13,10 +15,11 @@ import (
 type OrderCommandHandler struct {
 	eventStore event_store.EventStore
 	repo       repo.OrderRepository
+	service    service.OrderService
 }
 
-func NewOrderCommandHandler(eventStore event_store.EventStore, repo repo.OrderRepository) *OrderCommandHandler {
-	return &OrderCommandHandler{eventStore: eventStore, repo: repo}
+func NewOrderCommandHandler(eventStore event_store.EventStore, repo repo.OrderRepository, service service.OrderService) *OrderCommandHandler {
+	return &OrderCommandHandler{eventStore: eventStore, repo: repo, service: service}
 }
 
 type CreateOrderCommand struct {
@@ -26,13 +29,14 @@ type CreateOrderCommand struct {
 }
 
 func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd CreateOrderCommand) (int, error) {
-	if cmd.Product == "" || cmd.Quantity <= 0 {
-		return 0, errors.New("product, and valid quantity are required")
+	if cmd.Product == "" {
+		return 0, errors.New("product is required")
+	}
+	if cmd.Quantity <= 0 {
+		return 0, errors.New("quantity must be greater than zero")
 	}
 
-	// Create a new order entity
-	order, _ := domain.NewOrder(cmd.ID, cmd.Product, cmd.Quantity)
-	id, err := h.repo.Create(*order)
+	id, err := h.service.Create(ctx, cmd.ID, cmd.Product, cmd.Quantity)
 	if err != nil {
 		log.Fatalf("Unable to create order with id %d: %v", id, err)
 	}
@@ -41,7 +45,6 @@ func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd 
 	//if err := h.eventStore.StoreEvent(ctx, event); err != nil {
 	//	return err
 	//}
-
 	return id, nil
 }
 
@@ -54,7 +57,7 @@ func (h *OrderCommandHandler) HandleDeleteOrderCommand(ctx context.Context, cmd 
 		return errors.New("ID is required")
 	}
 
-	if err := h.repo.Delete(cmd.ID); err != nil {
+	if err := h.service.Delete(ctx, cmd.ID); err != nil {
 		return errors.New(fmt.Sprintf("failed to delete order: %s", err))
 	}
 	return nil
@@ -67,13 +70,11 @@ type UpdateOrderCommand struct {
 }
 
 func (h *OrderCommandHandler) HandleUpdateOrderCommand(ctx context.Context, cmd UpdateOrderCommand) error {
-	// Check if the order ID is provided
 	if cmd.ID == 0 {
 		return errors.New("ID is required")
 	}
 
 	order, _ := domain.NewOrder(cmd.ID, cmd.Product, cmd.Quantity)
-	// Perform validation and update the order in the repository
 	err := h.repo.Update(*order)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to update order: %s", err))

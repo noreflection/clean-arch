@@ -8,13 +8,11 @@ type Customer struct {
 }
 
 func NewCustomer(name string, email string) *Customer {
-	// Generate a unique ID for the customer (you can use any method you prefer).
 	var customerID string
 
 	return &Customer{
 		ID:    customerID,
 		Name:  name,
 		Email: email,
-		// Initialize other fields here if needed.
 	}
 }

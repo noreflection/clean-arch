@@ -20,8 +20,7 @@ const (
 )
 
 func SetupDatabase() (*sql.DB, error) {
-	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	db, err = sql.Open("postgres", connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
@@ -31,12 +30,11 @@ func SetupDatabase() (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("database connection failed: %w", err)
 	}
-	fmt.Println("Database connection established successfully")
+	fmt.Println("database connection established successfully")
 
 	var dbExists bool
 	if err := db.QueryRow("SELECT EXISTS(SELECT datname FROM pg_database WHERE datname=$1)", dbname).Scan(&dbExists); err != nil {
 		return nil, fmt.Errorf("failed to check database existence: %w", err)
 	}
-
 	return db, nil
 }
