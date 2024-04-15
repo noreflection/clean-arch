@@ -3,17 +3,17 @@ package query_handlers
 import (
 	"context"
 	"fmt"
-	"go-cqrs/internal/app/order/repo"
+	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
 )
 
 // OrderQueryHandler handles queries related to orders.
 type OrderQueryHandler struct {
-	orderRepo repo.OrderRepository
+	orderRepo app.Repository
 }
 
 // NewOrderQueryHandler creates a new instance of OrderQueryHandler.
-func NewOrderQueryHandler(orderRepo repo.OrderRepository) *OrderQueryHandler {
+func NewOrderQueryHandler(orderRepo app.Repository) *OrderQueryHandler {
 	return &OrderQueryHandler{orderRepo: orderRepo}
 }
 
