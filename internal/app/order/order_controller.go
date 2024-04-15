@@ -26,6 +26,7 @@ func (c *Controller) CreateOrderHandler(w http.ResponseWriter, r *http.Request) 
 		HandleErrorResponse(w, err)
 		return
 	}
+	defer r.Body.Close()
 
 	orderId, err := c.commandHandler.HandleCreateOrderCommand(r.Context(), createCmd)
 	if err != nil {
@@ -35,14 +36,37 @@ func (c *Controller) CreateOrderHandler(w http.ResponseWriter, r *http.Request) 
 	HandleSuccessResponse(w, fmt.Sprintf("order with id: %d created", orderId))
 }
 
-func (c *Controller) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	orderIDStr, ok := vars["id"]
-	if !ok {
-		HandleErrorResponse(w, fmt.Errorf("order ID not found in URL"))
-		return
-	}
+//func (c *Controller) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
+//	vars := mux.Vars(r)
+//	orderIDStr, ok := vars["id"]
+//	if !ok {
+//		HandleErrorResponse(w, fmt.Errorf("order ID not found in URL"))
+//		return
+//	}
+//
+//	orderID, err := strconv.Atoi(orderIDStr)
+//	if err != nil {
+//		HandleErrorResponse(w, fmt.Errorf("invalid order ID: %s", orderIDStr))
+//		return
+//	}
+//
+//	getQuery := query_handlers.GetOrderQuery{ID: orderID}
+//	order, err := c.queryHandler.HandleGetOrderQuery(r.Context(), getQuery)
+//	if err != nil {
+//		HandleErrorResponse(w, err)
+//		return
+//	}
+//
+//	orderJSON, err := json.Marshal(order)
+//	if err != nil {
+//		HandleErrorResponse(w, err)
+//		return
+//	}
+//	HandleSuccessResponse(w, string(orderJSON))
+//}
 
+func (c *Controller) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
+	orderIDStr := mux.Vars(r)["id"]
 	orderID, err := strconv.Atoi(orderIDStr)
 	if err != nil {
 		HandleErrorResponse(w, fmt.Errorf("invalid order ID: %s", orderIDStr))
@@ -56,12 +80,7 @@ func (c *Controller) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orderJSON, err := json.Marshal(order)
-	if err != nil {
-		HandleErrorResponse(w, err)
-		return
-	}
-	HandleSuccessResponse(w, string(orderJSON))
+	HandleSuccessResponse(w, order)
 }
 
 func (c *Controller) DeleteOrderHandler(w http.ResponseWriter, r *http.Request) {
@@ -101,13 +120,13 @@ func (c *Controller) UpdateOrderHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Parse the request body to get the updated order data
 	var updateCmd command_handlers.UpdateOrderCommand
 	err = json.NewDecoder(r.Body).Decode(&updateCmd)
 	if err != nil {
 		HandleErrorResponse(w, fmt.Errorf("failed to parse request body: %v", err))
 		return
 	}
+	defer r.Body.Close()
 
 	// Set the ID in the update command
 	updateCmd.ID = orderID
@@ -153,13 +172,13 @@ func HandleErrorResponse(w http.ResponseWriter, errorMessage error) {
 	}
 }
 
-func HandleSuccessResponse(w http.ResponseWriter, message string) {
+func HandleSuccessResponse(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	// Create and marshal the success response
-	response := SuccessResponse{Message: message}
-	jsonResponse, err := json.Marshal(response)
+	//response := SuccessResponse{Message: message}
+	jsonResponse, err := json.Marshal(data)
 	if err != nil {
 		// Handle JSON marshaling error
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
