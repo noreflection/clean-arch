@@ -2,7 +2,7 @@ package repo
 
 import (
 	"database/sql"
-	"fmt"
+
 	"github.com/pkg/errors"
 	"go-cqrs/internal/domain"
 )
@@ -37,10 +37,6 @@ func (r *OrderRepository) Get(orderID int) (domain.Order, error) {
 }
 
 func (r *OrderRepository) Update(order domain.Order) error {
-	if err := r.checkOrderExists(order.ID); err != nil {
-		return err
-	}
-
 	query := "UPDATE Orders SET product = $1, quantity = $2 WHERE id = $3"
 	_, err := r.db.Exec(query, order.Product, order.Quantity, order.ID)
 	if err != nil {
@@ -50,10 +46,6 @@ func (r *OrderRepository) Update(order domain.Order) error {
 }
 
 func (r *OrderRepository) Delete(orderID int) error {
-	if err := r.checkOrderExists(orderID); err != nil {
-		return err
-	}
-
 	stmt, err := r.db.Prepare("DELETE FROM Orders WHERE id = $1")
 	if err != nil {
 		return errors.Wrap(err, "failed to prepare statement for deleting order")
@@ -63,17 +55,6 @@ func (r *OrderRepository) Delete(orderID int) error {
 	_, err = stmt.Exec(orderID)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete order")
-	}
-	return nil
-}
-
-func (r *OrderRepository) checkOrderExists(orderID int) error {
-	_, err := r.Get(orderID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("order with ID %d not found", orderID)
-		}
-		return errors.Wrap(err, "failed to check if order exists")
 	}
 	return nil
 }

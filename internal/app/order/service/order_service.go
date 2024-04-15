@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"github.com/pkg/errors"
 	"go-cqrs/internal/app/order/repo"
 	"go-cqrs/internal/domain"
@@ -35,9 +37,36 @@ func (s *OrderService) Create(ctx context.Context, id int, product string, quant
 }
 
 func (s *OrderService) Delete(ctx context.Context, id int) error {
+	if err := s.checkOrderExists(id); err != nil {
+		return err
+	}
 	err := s.orderRepo.Delete(id)
 	if err != nil {
 		return err
 	}
 	return err
+}
+
+func (s *OrderService) Update(ctx context.Context, id int, quantity int, product string) error {
+	if err := s.checkOrderExists(id); err != nil {
+		return err
+	}
+
+	order, _ := domain.NewOrder(id, product, quantity)
+	err := s.orderRepo.Update(*order)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (s *OrderService) checkOrderExists(orderID int) error {
+	_, err := s.orderRepo.Get(orderID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("order with ID %d not found", orderID)
+		}
+		return errors.Wrap(err, "failed to check if order exists")
+	}
+	return nil
 }

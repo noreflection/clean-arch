@@ -7,7 +7,6 @@ import (
 	"go-cqrs/internal/app/order/service"
 
 	"go-cqrs/internal/app/order/repo"
-	"go-cqrs/internal/domain"
 	"go-cqrs/internal/infrastructure/event_store"
 	"log"
 )
@@ -74,8 +73,8 @@ func (h *OrderCommandHandler) HandleUpdateOrderCommand(ctx context.Context, cmd 
 		return errors.New("ID is required")
 	}
 
-	order, _ := domain.NewOrder(cmd.ID, cmd.Product, cmd.Quantity)
-	err := h.repo.Update(*order)
+	//order, _ := domain.NewOrder(cmd.ID, cmd.Product, cmd.Quantity)
+	err := h.service.Update(ctx, cmd.ID, cmd.Quantity, cmd.Product)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to update order: %s", err))
 	}
