@@ -15,8 +15,8 @@ type CustomerCommandHandler struct {
 	service    app.Service[domain.Customer]
 }
 
-func NewCustomerCommandHandler(eventStore event_store.EventStore, service app.Service[domain.Customer]) CustomerCommandHandler {
-	return CustomerCommandHandler{eventStore: eventStore, service: service}
+func NewCustomerCommandHandler(eventStore event_store.EventStore, service app.Service[domain.Customer]) *CustomerCommandHandler {
+	return &CustomerCommandHandler{eventStore: eventStore, service: service}
 }
 
 type CreateCustomerCommand struct {

@@ -40,7 +40,7 @@ func main() {
 	customerEventStore := event_store.NewEventStore("customer")
 	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, customerService)
 	customerQueryHandler := query_handlers.NewCustomerQueryHandler(customerRepo)
-	customerController := customer.NewCustomerController(&customerCommandHandler, customerQueryHandler) //
+	customerController := customer.NewCustomerController(customerCommandHandler, customerQueryHandler)
 
 	router := web.SetupRouter(*customerController, *orderController)
 	fmt.Println("Server is running on localhost:8080...")
