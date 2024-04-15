@@ -10,7 +10,7 @@ type OrderRepository struct {
 	db *sql.DB
 }
 
-func NewOrderRepository(db *sql.DB) *OrderRepository {
+func NewOrderRepository(db *sql.DB) *OrderRepository { //todo: check why cycle dep happens here
 	return &OrderRepository{db: db}
 }
 
@@ -80,9 +80,9 @@ func (r *OrderRepository) Update(order domain.Order) error {
 //	return nil
 //}
 
-func (r *OrderRepository) Delete(orderID string) error {
+func (r *OrderRepository) Delete(orderID int) error {
 	// Delete an order by ID from the database.
-	stmt, err := r.db.Prepare("DELETE FROM Orders WHERE id = ?")
+	stmt, err := r.db.Prepare("DELETE FROM Orders WHERE id = $1")
 	if err != nil {
 		return errors.Wrap(err, "failed to prepare statement for deleting order")
 	}

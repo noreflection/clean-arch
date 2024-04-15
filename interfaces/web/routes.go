@@ -13,6 +13,8 @@ func SetupRouter(customerController customer.CustomerController, orderController
 	// Order routes
 	router.HandleFunc("/orders", orderController.CreateOrderHandler).Methods(http.MethodPost)
 	router.HandleFunc("/orders/{id}", orderController.GetOrderHandler).Methods(http.MethodGet)
+	//router.HandleFunc("/orders", orderController.CreateOrderHandler).Methods(http.MethodPatch)
+	router.HandleFunc("/orders/{id}", orderController.DeleteOrderHandler).Methods(http.MethodDelete)
 
 	// Customer routes
 	router.HandleFunc("/customers", customerController.CreateCustomerHandler).Methods(http.MethodPost)

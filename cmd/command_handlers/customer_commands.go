@@ -3,14 +3,13 @@ package command_handlers
 import (
 	"database/sql"
 	"errors"
-	"go-cqrs/internal/domain"
 	"go-cqrs/internal/infrastructure/event_store"
 )
 
 type CustomerCommandHandler struct {
 	//eventStore event_store.EventStore
-	db      *sql.DB
-	service domain.CustomerService
+	db *sql.DB
+	//service domain.CustomerService
 }
 
 func NewCustomerCommandHandler(store event_store.EventStore, d *sql.DB) *CustomerCommandHandler {
@@ -28,10 +27,10 @@ func (h *CustomerCommandHandler) HandleCreateCustomerCommand(cmd CreateCustomerC
 		return errors.New("customer ID, name, and email are required")
 	}
 
-	err := h.service.CreateCustomer(cmd.ID, cmd.Name, cmd.Email)
-	if err != nil {
-		return err
-	}
+	//err := h.service.CreateCustomer(cmd.ID, cmd.Name, cmd.Email)
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 

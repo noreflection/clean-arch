@@ -24,7 +24,6 @@ type CreateOrderCommand struct {
 	Quantity int
 }
 
-// HandleCreateOrderCommand handles the CreateOrderCommand.
 func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd CreateOrderCommand) error {
 	// Validate input
 	if cmd.Product == "" || cmd.Quantity <= 0 {
@@ -44,6 +43,20 @@ func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd 
 	//}
 
 	// Perform any additional logic or validations here
+	return nil
+}
 
+type DeleteOrderCommand struct {
+	ID int
+}
+
+func (h *OrderCommandHandler) HandleDeleteOrderCommand(ctx context.Context, cmd DeleteOrderCommand) error {
+	if cmd.ID == 0 {
+		return errors.New("ID is required")
+	}
+
+	if err := h.repo.Delete(cmd.ID); err != nil {
+		return errors.New("failed to delete order")
+	}
 	return nil
 }

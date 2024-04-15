@@ -38,7 +38,6 @@ func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Requ
 
 func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
 	var getQuery query_handlers.GetOrderQuery
-	// Extract the order ID from the URL path parameter
 	vars := mux.Vars(r)
 	orderIDStr, ok := vars["id"]
 	if !ok {
@@ -68,6 +67,32 @@ func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	HandleSuccessResponse(w, string(orderJSON))
+}
+
+func (c *OrderController) DeleteOrderHandler(w http.ResponseWriter, r *http.Request) {
+	var deleteCmd command_handlers.DeleteOrderCommand
+	vars := mux.Vars(r)
+	orderIDStr, ok := vars["id"]
+	if !ok {
+		HandleErrorResponse(w, fmt.Errorf("order ID not found in URL"))
+		return
+	}
+	fmt.Printf(orderIDStr)
+
+	// Convert the order ID string to an integer
+	orderID, err := strconv.Atoi(orderIDStr)
+	if err != nil {
+		HandleErrorResponse(w, fmt.Errorf("invalid order ID: %s", orderIDStr))
+		return
+	}
+	deleteCmd.ID = orderID
+
+	err = c.commandHandler.HandleDeleteOrderCommand(r.Context(), deleteCmd)
+	if err != nil {
+		HandleErrorResponse(w, err)
+		return
+	}
+	HandleSuccessResponse(w, fmt.Sprintf("Order ID:%d has been successfully deleted", orderID))
 }
 
 type ErrorResponse struct {

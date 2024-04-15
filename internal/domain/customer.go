@@ -1,11 +1,6 @@
 package domain
 
-import (
-	"gorm.io/gorm"
-)
-
 type Customer struct {
-	gorm.Model
 	ID      string
 	Name    string
 	Surname string
