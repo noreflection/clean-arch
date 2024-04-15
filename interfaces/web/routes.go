@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func SetupRouter(customerController customer.CustomerController, orderController order.OrderController) *mux.Router {
+func SetupRouter(customerController customer.Controller, orderController order.Controller) *mux.Router {
 	router := mux.NewRouter()
 
 	// Order routes

@@ -6,15 +6,15 @@ import (
 	"net/http"
 )
 
-type CustomerController struct {
+type Controller struct {
 	commandHandler *command_handlers.CustomerCommandHandler
 }
 
-func NewCustomerController(commandHandler *command_handlers.CustomerCommandHandler) *CustomerController {
-	return &CustomerController{commandHandler: commandHandler}
+func NewCustomerController(commandHandler *command_handlers.CustomerCommandHandler) *Controller {
+	return &Controller{commandHandler: commandHandler}
 }
 
-func (c *CustomerController) CreateCustomerHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) CreateCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse request data and validate it
 	// For simplicity, let's assume the data is in JSON format
 	// You can use a JSON parsing library (e.g., encoding/json) to parse the request body

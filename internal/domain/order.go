@@ -12,8 +12,6 @@ type Order struct {
 }
 
 func NewOrder(id int, product string, quantity int) (*Order, error) {
-	//customerID := generateUniqueID()
-
 	return &Order{
 		ID:       id,
 		Product:  product,

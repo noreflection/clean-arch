@@ -10,16 +10,16 @@ import (
 	"strconv"
 )
 
-type OrderController struct {
+type Controller struct {
 	commandHandler *command_handlers.OrderCommandHandler
 	queryHandler   *query_handlers.OrderQueryHandler
 }
 
-func NewOrderController(commandHandler *command_handlers.OrderCommandHandler, queryHandler *query_handlers.OrderQueryHandler) *OrderController {
-	return &OrderController{commandHandler: commandHandler, queryHandler: queryHandler}
+func NewOrderController(commandHandler *command_handlers.OrderCommandHandler, queryHandler *query_handlers.OrderQueryHandler) *Controller {
+	return &Controller{commandHandler: commandHandler, queryHandler: queryHandler}
 }
 
-func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) CreateOrderHandler(w http.ResponseWriter, r *http.Request) {
 	var createCmd command_handlers.CreateOrderCommand
 	err := json.NewDecoder(r.Body).Decode(&createCmd)
 	if err != nil {
@@ -35,7 +35,7 @@ func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Requ
 	HandleSuccessResponse(w, fmt.Sprintf("order with id: %d created", orderId))
 }
 
-func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	orderIDStr, ok := vars["id"]
 	if !ok {
@@ -64,7 +64,7 @@ func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request
 	HandleSuccessResponse(w, string(orderJSON))
 }
 
-func (c *OrderController) DeleteOrderHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) DeleteOrderHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	orderIDStr, ok := vars["id"]
 	if !ok {
@@ -87,7 +87,7 @@ func (c *OrderController) DeleteOrderHandler(w http.ResponseWriter, r *http.Requ
 	HandleSuccessResponse(w, fmt.Sprintf("order ID:%d has been successfully deleted", orderID))
 }
 
-func (c *OrderController) UpdateOrderHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) UpdateOrderHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	orderIDStr, ok := vars["id"]
 	if !ok {

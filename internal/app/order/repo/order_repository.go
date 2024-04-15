@@ -11,7 +11,7 @@ type OrderRepository struct {
 	db *sql.DB
 }
 
-func NewOrderRepository(db *sql.DB) *OrderRepository { //todo: check why cycle dep happens here
+func NewOrderRepository(db *sql.DB) *OrderRepository {
 	return &OrderRepository{db: db}
 }
 
@@ -21,30 +21,8 @@ func (r *OrderRepository) Create(order domain.Order) (int, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "Failed to create order")
 	}
-	fmt.Printf("id:%d", orderID)
 	return orderID, nil
-
 }
-
-//func (r *OrderRepository) Create(order domain.Order) (string, error) {
-//	// Insert a new order into the database and return the ID of the newly created order.
-//	stmt, err := r.db.Prepare("INSERT INTO orders (...) VALUES (...)")
-//	if err != nil {
-//		return "", errors.Wrap(err, "failed to prepare statement for creating order")
-//	}
-//	defer stmt.Close()
-//
-//	_, err = stmt.Exec( /* values for other columns */ )
-//	if err != nil {
-//		return "", errors.Wrap(err, "failed to create order")
-//	}
-//	// Retrieve the auto-generated ID of the newly created order
-//	orderID, err := r.getLastInsertedOrderID()
-//	if err != nil {
-//		return "", errors.Wrap(err, "failed to retrieve order ID")
-//	}
-//	return orderID, nil
-//}
 
 func (r *OrderRepository) Get(orderID int) (domain.Order, error) {
 	var order domain.Order
