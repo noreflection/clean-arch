@@ -27,11 +27,12 @@ func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err := c.commandHandler.HandleCreateOrderCommand(r.Context(), createCmd); err != nil {
+	orderId, err := c.commandHandler.HandleCreateOrderCommand(r.Context(), createCmd)
+	if err != nil {
 		HandleErrorResponse(w, err)
 		return
 	}
-	HandleSuccessResponse(w, "order created successfully") //todo: add returned id
+	HandleSuccessResponse(w, fmt.Sprintf("order with id: %d created", orderId))
 }
 
 func (c *OrderController) GetOrderHandler(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +110,7 @@ func (c *OrderController) UpdateOrderHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Set the ID in the update command
-	updateCmd.ID = strconv.Itoa(orderID)
+	updateCmd.ID = orderID
 
 	// Call the command handler to update the order
 	err = c.commandHandler.HandleUpdateOrderCommand(r.Context(), updateCmd)

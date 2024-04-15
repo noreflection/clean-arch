@@ -5,13 +5,13 @@ import (
 )
 
 type Order struct {
-	ID         string
+	ID         int
 	CustomerId sql.NullInt64
 	Product    string
 	Quantity   int
 }
 
-func NewOrder(id string, product string, quantity int) (*Order, error) {
+func NewOrder(id int, product string, quantity int) (*Order, error) {
 	//customerID := generateUniqueID()
 
 	return &Order{
