@@ -1,20 +1,20 @@
-package service
+package order
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
-	"go-cqrs/internal/app/order/repo"
+	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
 	"log"
 )
 
 type OrderService struct {
-	orderRepo repo.OrderRepository
+	orderRepo app.Repository
 }
 
-func NewOrderService(orderRepo repo.OrderRepository) *OrderService {
+func NewOrderService(orderRepo app.Repository) *OrderService {
 	return &OrderService{orderRepo: orderRepo}
 }
 

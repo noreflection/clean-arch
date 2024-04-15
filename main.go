@@ -9,7 +9,6 @@ import (
 	"go-cqrs/internal/app/customer"
 	"go-cqrs/internal/app/order"
 	"go-cqrs/internal/app/order/repo"
-	"go-cqrs/internal/app/order/service"
 	"go-cqrs/internal/infrastructure/db"
 	"go-cqrs/internal/infrastructure/event_store"
 	"log"
@@ -31,7 +30,7 @@ func main() {
 
 	//customerRepo := customer.NewCustomerRepository(database)
 	orderRepo := repo.NewOrderRepository(database)
-	orderService := service.NewOrderService(*orderRepo)
+	orderService := order.NewOrderService(orderRepo)
 
 	// Initialize the customer command handler and controller
 	customerEventStore := event_store.NewEventStore("customer") //todo: impl eventstore
@@ -40,7 +39,7 @@ func main() {
 
 	// Initialize the order command handler and controller
 	orderEventStore := event_store.NewEventStore("order")
-	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, *orderService)
+	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, orderService, database)
 	orderQueryHandler := query_handlers.NewOrderQueryHandler(*orderRepo)
 	orderController := order.NewOrderController(orderCommandHandler, orderQueryHandler)
 
