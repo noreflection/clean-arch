@@ -40,7 +40,7 @@ func main() {
 
 	// Initialize the order command handler and controller
 	orderEventStore := event_store.NewEventStore("order")
-	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, *orderRepo, *orderService)
+	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, *orderService)
 	orderQueryHandler := query_handlers.NewOrderQueryHandler(*orderRepo)
 	orderController := order.NewOrderController(orderCommandHandler, orderQueryHandler)
 

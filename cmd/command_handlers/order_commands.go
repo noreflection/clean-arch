@@ -6,19 +6,17 @@ import (
 	"fmt"
 	"go-cqrs/internal/app/order/service"
 
-	"go-cqrs/internal/app/order/repo"
 	"go-cqrs/internal/infrastructure/event_store"
 	"log"
 )
 
 type OrderCommandHandler struct {
 	eventStore event_store.EventStore
-	repo       repo.OrderRepository
 	service    service.OrderService
 }
 
-func NewOrderCommandHandler(eventStore event_store.EventStore, repo repo.OrderRepository, service service.OrderService) *OrderCommandHandler {
-	return &OrderCommandHandler{eventStore: eventStore, repo: repo, service: service}
+func NewOrderCommandHandler(eventStore event_store.EventStore, service service.OrderService) *OrderCommandHandler {
+	return &OrderCommandHandler{eventStore: eventStore, service: service}
 }
 
 type CreateOrderCommand struct {
@@ -73,7 +71,6 @@ func (h *OrderCommandHandler) HandleUpdateOrderCommand(ctx context.Context, cmd 
 		return errors.New("ID is required")
 	}
 
-	//order, _ := domain.NewOrder(cmd.ID, cmd.Product, cmd.Quantity)
 	err := h.service.Update(ctx, cmd.ID, cmd.Quantity, cmd.Product)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to update order: %s", err))
