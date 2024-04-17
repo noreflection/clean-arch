@@ -27,20 +27,18 @@ func (s *Service) Create(ctx context.Context, id int, customer domain.Customer) 
 		return 0, errors.Wrap(err, "failed to create order")
 	}
 
-	//var id int
 	id, err = s.customerRepo.Create(ctx, *c)
 	if err != nil {
 		log.Fatalf("Unable to create order with id %d: %v", id, err)
 	}
-	// Any additional logic after creating the order can be added here
 	return orderID, nil
-
 }
 
 func (s *Service) Delete(ctx context.Context, id int) error {
 	if err := s.checkCustomerExists(ctx, id); err != nil {
 		return err
 	}
+
 	err := s.customerRepo.Delete(ctx, id)
 	if err != nil {
 		return err
@@ -48,12 +46,11 @@ func (s *Service) Delete(ctx context.Context, id int) error {
 	return err
 }
 
-func (s *Service) Update(ctx context.Context, id int, customer domain.Customer) error {
-	if err := s.checkCustomerExists(ctx, id); err != nil {
+func (s *Service) Update(ctx context.Context, customer domain.Customer) error {
+	if err := s.checkCustomerExists(ctx, customer.ID); err != nil {
 		return err
 	}
 
-	//customer := domain.NewCustomer(name, email)
 	err := s.customerRepo.Update(ctx, customer)
 	if err != nil {
 		return err

@@ -73,7 +73,7 @@ func (h *CustomerCommandHandler) HandleUpdateCustomerCommand(ctx context.Context
 	}
 
 	var customer domain.Customer
-	err := h.service.Update(ctx, cmd.ID, customer)
+	err := h.service.Update(ctx, customer)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to update customer: %s", err))
 	}

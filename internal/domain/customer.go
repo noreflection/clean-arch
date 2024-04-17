@@ -1,7 +1,7 @@
 package domain
 
 type Customer struct {
-	ID    string
+	ID    int
 	Name  string
 	Email string
 	//CreatedAt time.Time
@@ -9,7 +9,7 @@ type Customer struct {
 }
 
 func NewCustomer(name string, email string) *Customer {
-	var customerID string
+	var customerID int
 	return &Customer{
 		ID:    customerID,
 		Name:  name,

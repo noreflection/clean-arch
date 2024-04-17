@@ -17,17 +17,11 @@ import (
 func main() {
 	database, err := db.SetupDatabase()
 	if err != nil {
-		log.Printf("Unable to setup database: %v", err)
+		log.Printf("unable to setup database: %v", err)
 		return
 	}
 	defer database.Close()
 
-	//orderRepo := order.NewRepository()
-	//orderService := order.NewService(orderRepo)
-	//orderCommandHandler := command_handlers.NewOrderCommandHandler(orderService)
-	//orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
-
-	//customerRepo := customer.NewCustomerRepository(database)
 	orderRepo := order.NewRepository(database)
 	orderService := order.NewService(orderRepo)
 	orderEventStore := event_store.NewEventStore("order")

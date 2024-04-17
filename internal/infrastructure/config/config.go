@@ -6,7 +6,6 @@ import (
 	"os"
 )
 
-// Config represents the application configuration.
 type Config struct {
 	DBHost     string
 	DBPort     string

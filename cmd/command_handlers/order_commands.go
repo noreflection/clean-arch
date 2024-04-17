@@ -72,8 +72,8 @@ func (h *OrderCommandHandler) HandleUpdateOrderCommand(ctx context.Context, cmd 
 		return errors.New("ID is required")
 	}
 
-	var order domain.Order
-	err := h.service.Update(ctx, cmd.ID, order)
+	order := domain.Order{ID: cmd.ID, Product: cmd.Product, Quantity: cmd.Quantity}
+	err := h.service.Update(ctx, order)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to update order: %s", err))
 	}
