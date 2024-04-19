@@ -2,12 +2,11 @@ package web
 
 import (
 	"github.com/gorilla/mux"
-	"go-cqrs/internal/app/customer"
-	"go-cqrs/internal/app/order"
+	"go-cqrs/internal/interface/controller"
 	"net/http"
 )
 
-func SetupRouter(customerController customer.Controller, orderController order.Controller) *mux.Router {
+func SetupRouter(customerController controller.CustomerController, orderController controller.OrderController) *mux.Router {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/orders", orderController.CreateOrderHandler).Methods(http.MethodPost)

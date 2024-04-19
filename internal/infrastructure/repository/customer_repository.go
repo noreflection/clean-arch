@@ -1,4 +1,4 @@
-package customer
+package repository
 
 import (
 	"context"
@@ -8,15 +8,15 @@ import (
 	"go-cqrs/internal/domain"
 )
 
-type Repository struct {
+type CustomerRepository struct {
 	db *sql.DB
 }
 
-func NewRepository(db *sql.DB) *Repository {
-	return &Repository{db: db}
+func NewCustomerRepository(db *sql.DB) *CustomerRepository {
+	return &CustomerRepository{db: db}
 }
 
-func (r *Repository) Create(ctx context.Context, customer domain.Customer) (int, error) {
+func (r *CustomerRepository) Create(ctx context.Context, customer domain.Customer) (int, error) {
 	var orderID int
 	err := r.db.QueryRow("INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id", customer.Name, customer.Email).Scan(&orderID)
 	if err != nil {
@@ -25,7 +25,7 @@ func (r *Repository) Create(ctx context.Context, customer domain.Customer) (int,
 	return orderID, nil
 }
 
-func (r *Repository) Get(ctx context.Context, orderID int) (domain.Customer, error) {
+func (r *CustomerRepository) Get(ctx context.Context, orderID int) (domain.Customer, error) {
 	var customer domain.Customer
 	err := r.db.QueryRow("SELECT * FROM cutomers WHERE id = $1", orderID).Scan(&customer.ID, &customer.Name, &customer.Email)
 	if err != nil {
@@ -37,7 +37,7 @@ func (r *Repository) Get(ctx context.Context, orderID int) (domain.Customer, err
 	return customer, nil
 }
 
-func (r *Repository) Update(ctx context.Context, customer domain.Customer) error {
+func (r *CustomerRepository) Update(ctx context.Context, customer domain.Customer) error {
 	query := "UPDATE customers SET name = $1, email = $2 WHERE id = $3"
 	_, err := r.db.Exec(query, customer.Name, customer.Email)
 	if err != nil {
@@ -46,7 +46,7 @@ func (r *Repository) Update(ctx context.Context, customer domain.Customer) error
 	return nil
 }
 
-func (r *Repository) Delete(ctx context.Context, id int) error {
+func (r *CustomerRepository) Delete(ctx context.Context, id int) error {
 	stmt, err := r.db.Prepare("DELETE FROM customers WHERE id = $1")
 	if err != nil {
 		return errors.Wrap(err, "failed to prepare statement for deleting customer")

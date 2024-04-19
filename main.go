@@ -5,11 +5,13 @@ import (
 	_ "github.com/lib/pq"
 	"go-cqrs/cmd/command_handlers"
 	"go-cqrs/cmd/query_handlers"
-	"go-cqrs/interfaces/web"
 	"go-cqrs/internal/app/customer"
 	"go-cqrs/internal/app/order"
 	"go-cqrs/internal/infrastructure/db"
 	"go-cqrs/internal/infrastructure/event_store"
+	"go-cqrs/internal/infrastructure/repository"
+	"go-cqrs/internal/interface/controller"
+	"go-cqrs/internal/interface/web"
 	"log"
 	"net/http"
 )
@@ -22,19 +24,19 @@ func main() {
 	}
 	defer database.Close()
 
-	orderRepo := order.NewRepository(database)
+	orderRepo := repository.NewOrderRepository(database)
 	orderService := order.NewService(orderRepo)
 	orderEventStore := event_store.NewEventStore("order")
 	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, orderService)
 	orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
-	orderController := order.NewOrderController(orderCommandHandler, orderQueryHandler)
+	orderController := controller.NewOrderController(orderCommandHandler, orderQueryHandler)
 
-	customerRepo := customer.NewRepository(database)
+	customerRepo := repository.NewCustomerRepository(database)
 	customerService := customer.NewService(customerRepo)
 	customerEventStore := event_store.NewEventStore("customer")
 	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, customerService)
 	customerQueryHandler := query_handlers.NewCustomerQueryHandler(customerRepo)
-	customerController := customer.NewCustomerController(customerCommandHandler, customerQueryHandler)
+	customerController := controller.NewCustomerController(customerCommandHandler, customerQueryHandler)
 
 	router := web.SetupRouter(*customerController, *orderController)
 	fmt.Println("Server is running on localhost:8080...")

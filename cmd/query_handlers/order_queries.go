@@ -3,15 +3,14 @@ package query_handlers
 import (
 	"context"
 	"fmt"
-	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
 )
 
 type OrderQueryHandler struct {
-	orderRepo app.Repository[domain.Order]
+	orderRepo domain.Repository[domain.Order]
 }
 
-func NewOrderQueryHandler(orderRepo app.Repository[domain.Order]) *OrderQueryHandler {
+func NewOrderQueryHandler(orderRepo domain.Repository[domain.Order]) *OrderQueryHandler {
 	return &OrderQueryHandler{orderRepo: orderRepo}
 }
 

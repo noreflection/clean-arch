@@ -5,16 +5,15 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
-	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
 	"log"
 )
 
 type Service struct {
-	customerRepo app.Repository[domain.Customer]
+	customerRepo domain.Repository[domain.Customer]
 }
 
-func NewService(customerRepo app.Repository[domain.Customer]) *Service {
+func NewService(customerRepo domain.Repository[domain.Customer]) *Service {
 	return &Service{customerRepo: customerRepo}
 }
 
