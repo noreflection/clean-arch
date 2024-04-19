@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"go-cqrs/cmd/command_handlers"
-	"go-cqrs/cmd/query_handlers"
+	"go-cqrs/internal/interface/command_handlers"
+	"go-cqrs/internal/interface/query_handlers"
 	"net/http"
 	"strconv"
 )
