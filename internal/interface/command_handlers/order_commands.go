@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
-	"go-cqrs/internal/infrastructure/event_store"
+	"go-cqrs/internal/infra/event_store"
 	"log"
 )
 

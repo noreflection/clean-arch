@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	_ "github.com/lib/pq"
-	"go-cqrs/internal/app"
-	"go-cqrs/internal/infrastructure/db"
-	"go-cqrs/internal/infrastructure/event_store"
-	"go-cqrs/internal/infrastructure/repository"
+	"go-cqrs/internal/app/service"
+	"go-cqrs/internal/infra/db"
+	"go-cqrs/internal/infra/event_store"
+	"go-cqrs/internal/infra/repository"
 	"go-cqrs/internal/interface/command_handlers"
 	"go-cqrs/internal/interface/controller"
 	"go-cqrs/internal/interface/query_handlers"
@@ -24,14 +24,14 @@ func main() {
 	defer database.Close()
 
 	orderRepo := repository.NewOrderRepository(database)
-	orderService := app.NewOrderService(orderRepo)
+	orderService := service.NewOrderService(orderRepo)
 	orderEventStore := event_store.NewEventStore("order")
 	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, orderService)
 	orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
 	orderController := controller.NewOrderController(orderCommandHandler, orderQueryHandler)
 
 	customerRepo := repository.NewCustomerRepository(database)
-	customerService := app.NewCustomerService(customerRepo)
+	customerService := service.NewCustomerService(customerRepo)
 	customerEventStore := event_store.NewEventStore("customer")
 	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, customerService)
 	customerQueryHandler := query_handlers.NewCustomerQueryHandler(customerRepo)
