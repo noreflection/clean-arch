@@ -1,4 +1,4 @@
-package order
+package app
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 	"log"
 )
 
-type Service struct {
+type OrderService struct {
 	orderRepo domain.Repository[domain.Order]
 }
 
-func NewService(orderRepo domain.Repository[domain.Order]) *Service {
-	return &Service{orderRepo: orderRepo}
+func NewOrderService(orderRepo domain.Repository[domain.Order]) *OrderService {
+	return &OrderService{orderRepo: orderRepo}
 }
 
-func (s *Service) Create(ctx context.Context, id int, order domain.Order) (int, error) {
+func (s *OrderService) Create(ctx context.Context, id int, order domain.Order) (int, error) {
 	// Additional validation or business logic should be performed here
 	// For example, checking if the product exists or if the user is allowed to create orders
 	o, _ := domain.NewOrder(id, order.Product, order.Quantity) //todo
@@ -35,7 +35,7 @@ func (s *Service) Create(ctx context.Context, id int, order domain.Order) (int, 
 
 }
 
-func (s *Service) Delete(ctx context.Context, id int) error {
+func (s *OrderService) Delete(ctx context.Context, id int) error {
 	if err := s.checkOrderExists(ctx, id); err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (s *Service) Delete(ctx context.Context, id int) error {
 	return err
 }
 
-func (s *Service) Update(ctx context.Context, order domain.Order) error {
+func (s *OrderService) Update(ctx context.Context, order domain.Order) error {
 	if err := s.checkOrderExists(ctx, order.ID); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (s *Service) Update(ctx context.Context, order domain.Order) error {
 	return err
 }
 
-func (s *Service) checkOrderExists(ctx context.Context, orderID int) error {
+func (s *OrderService) checkOrderExists(ctx context.Context, orderID int) error {
 	_, err := s.orderRepo.Get(ctx, orderID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

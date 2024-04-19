@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	_ "github.com/lib/pq"
-	"go-cqrs/internal/app/customer"
-	"go-cqrs/internal/app/order"
+	"go-cqrs/internal/app"
 	"go-cqrs/internal/infrastructure/db"
 	"go-cqrs/internal/infrastructure/event_store"
 	"go-cqrs/internal/infrastructure/repository"
-	command_handlers2 "go-cqrs/internal/interface/command_handlers"
+	"go-cqrs/internal/interface/command_handlers"
 	"go-cqrs/internal/interface/controller"
-	query_handlers2 "go-cqrs/internal/interface/query_handlers"
+	"go-cqrs/internal/interface/query_handlers"
 	"go-cqrs/internal/interface/web"
 	"log"
 	"net/http"
@@ -25,17 +24,17 @@ func main() {
 	defer database.Close()
 
 	orderRepo := repository.NewOrderRepository(database)
-	orderService := order.NewService(orderRepo)
+	orderService := app.NewOrderService(orderRepo)
 	orderEventStore := event_store.NewEventStore("order")
-	orderCommandHandler := command_handlers2.NewOrderCommandHandler(orderEventStore, orderService)
-	orderQueryHandler := query_handlers2.NewOrderQueryHandler(orderRepo)
+	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, orderService)
+	orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
 	orderController := controller.NewOrderController(orderCommandHandler, orderQueryHandler)
 
 	customerRepo := repository.NewCustomerRepository(database)
-	customerService := customer.NewService(customerRepo)
+	customerService := app.NewCustomerService(customerRepo)
 	customerEventStore := event_store.NewEventStore("customer")
-	customerCommandHandler := command_handlers2.NewCustomerCommandHandler(customerEventStore, customerService)
-	customerQueryHandler := query_handlers2.NewCustomerQueryHandler(customerRepo)
+	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, customerService)
+	customerQueryHandler := query_handlers.NewCustomerQueryHandler(customerRepo)
 	customerController := controller.NewCustomerController(customerCommandHandler, customerQueryHandler)
 
 	router := web.SetupRouter(*customerController, *orderController)
