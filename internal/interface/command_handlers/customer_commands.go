@@ -12,10 +12,10 @@ import (
 
 type CustomerCommandHandler struct {
 	eventStore event_store.EventStore
-	service    app.Service[domain.Customer]
+	service    app.UseCases[domain.Customer]
 }
 
-func NewCustomerCommandHandler(eventStore event_store.EventStore, service app.Service[domain.Customer]) *CustomerCommandHandler {
+func NewCustomerCommandHandler(eventStore event_store.EventStore, service app.UseCases[domain.Customer]) *CustomerCommandHandler {
 	return &CustomerCommandHandler{eventStore: eventStore, service: service}
 }
 

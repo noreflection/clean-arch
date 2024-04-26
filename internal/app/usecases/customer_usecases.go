@@ -1,23 +1,24 @@
-package service
+package usecases
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
+	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
 	"log"
 )
 
-type CustomerService struct {
-	customerRepo domain.Repository[domain.Customer]
+type CustomerUseCases struct {
+	customerRepo app.Repository[domain.Customer]
 }
 
-func NewCustomerService(customerRepo domain.Repository[domain.Customer]) *CustomerService {
-	return &CustomerService{customerRepo: customerRepo}
+func NewCustomerUseCases(customerRepo app.Repository[domain.Customer]) *CustomerUseCases {
+	return &CustomerUseCases{customerRepo: customerRepo}
 }
 
-func (s *CustomerService) Create(ctx context.Context, id int, customer domain.Customer) (int, error) {
+func (s *CustomerUseCases) Create(ctx context.Context, id int, customer domain.Customer) (int, error) {
 	// Additional validation or business logic should be performed here
 	// For example, checking if the customer exists or if the user is allowed to create orders
 	c := domain.NewCustomer(customer.Name, customer.Email)
@@ -33,7 +34,7 @@ func (s *CustomerService) Create(ctx context.Context, id int, customer domain.Cu
 	return orderID, nil
 }
 
-func (s *CustomerService) Delete(ctx context.Context, id int) error {
+func (s *CustomerUseCases) Delete(ctx context.Context, id int) error {
 	if err := s.checkCustomerExists(ctx, id); err != nil {
 		return err
 	}
@@ -45,7 +46,7 @@ func (s *CustomerService) Delete(ctx context.Context, id int) error {
 	return err
 }
 
-func (s *CustomerService) Update(ctx context.Context, customer domain.Customer) error {
+func (s *CustomerUseCases) Update(ctx context.Context, customer domain.Customer) error {
 	if err := s.checkCustomerExists(ctx, customer.ID); err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func (s *CustomerService) Update(ctx context.Context, customer domain.Customer) 
 	return err
 }
 
-func (s *CustomerService) checkCustomerExists(ctx context.Context, orderID int) error {
+func (s *CustomerUseCases) checkCustomerExists(ctx context.Context, orderID int) error {
 	_, err := s.customerRepo.Get(ctx, orderID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

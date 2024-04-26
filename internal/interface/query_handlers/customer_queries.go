@@ -3,14 +3,15 @@ package query_handlers
 import (
 	"context"
 	"fmt"
+	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
 )
 
 type CustomerQueryHandler struct {
-	customerRepo domain.Repository[domain.Customer]
+	customerRepo app.Repository[domain.Customer]
 }
 
-func NewCustomerQueryHandler(customerRepo domain.Repository[domain.Customer]) *CustomerQueryHandler {
+func NewCustomerQueryHandler(customerRepo app.Repository[domain.Customer]) *CustomerQueryHandler {
 	return &CustomerQueryHandler{customerRepo: customerRepo}
 }
 

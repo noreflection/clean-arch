@@ -12,10 +12,10 @@ import (
 
 type OrderCommandHandler struct {
 	eventStore event_store.EventStore
-	service    app.Service[domain.Order]
+	service    app.UseCases[domain.Order]
 }
 
-func NewOrderCommandHandler(eventStore event_store.EventStore, service app.Service[domain.Order]) *OrderCommandHandler {
+func NewOrderCommandHandler(eventStore event_store.EventStore, service app.UseCases[domain.Order]) *OrderCommandHandler {
 	return &OrderCommandHandler{eventStore: eventStore, service: service}
 }
 

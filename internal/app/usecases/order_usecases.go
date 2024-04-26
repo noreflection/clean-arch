@@ -1,23 +1,24 @@
-package service
+package usecases
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
+	"go-cqrs/internal/app"
 	"go-cqrs/internal/domain"
 	"log"
 )
 
-type OrderService struct {
-	orderRepo domain.Repository[domain.Order]
+type OrderUseCases struct {
+	orderRepo app.Repository[domain.Order]
 }
 
-func NewOrderService(orderRepo domain.Repository[domain.Order]) *OrderService {
-	return &OrderService{orderRepo: orderRepo}
+func NewOrderUseCases(orderRepo app.Repository[domain.Order]) *OrderUseCases {
+	return &OrderUseCases{orderRepo: orderRepo}
 }
 
-func (s *OrderService) Create(ctx context.Context, id int, order domain.Order) (int, error) {
+func (s *OrderUseCases) Create(ctx context.Context, id int, order domain.Order) (int, error) {
 	// Additional validation or business logic should be performed here
 	// For example, checking if the product exists or if the user is allowed to create orders
 	o, _ := domain.NewOrder(id, order.Product, order.Quantity) //todo
@@ -35,7 +36,7 @@ func (s *OrderService) Create(ctx context.Context, id int, order domain.Order) (
 
 }
 
-func (s *OrderService) Delete(ctx context.Context, id int) error {
+func (s *OrderUseCases) Delete(ctx context.Context, id int) error {
 	if err := s.checkOrderExists(ctx, id); err != nil {
 		return err
 	}
@@ -46,7 +47,7 @@ func (s *OrderService) Delete(ctx context.Context, id int) error {
 	return err
 }
 
-func (s *OrderService) Update(ctx context.Context, order domain.Order) error {
+func (s *OrderUseCases) Update(ctx context.Context, order domain.Order) error {
 	if err := s.checkOrderExists(ctx, order.ID); err != nil {
 		return err
 	}
@@ -58,7 +59,7 @@ func (s *OrderService) Update(ctx context.Context, order domain.Order) error {
 	return err
 }
 
-func (s *OrderService) checkOrderExists(ctx context.Context, orderID int) error {
+func (s *OrderUseCases) checkOrderExists(ctx context.Context, orderID int) error {
 	_, err := s.orderRepo.Get(ctx, orderID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
