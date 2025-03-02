@@ -2,9 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
-	"go-cqrs/internal/infrastructure/config"
 
 	_ "github.com/lib/pq"
 )
@@ -15,9 +13,9 @@ type Database struct {
 }
 
 // NewDatabase creates a new database connection
-func NewDatabase(cfg *config.Config) (*Database, error) {
+func NewDatabase(connString string) (*Database, error) {
 	// Open database connection
-	db, err := sql.Open("postgres", cfg.DatabaseURL())
+	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
@@ -47,7 +45,7 @@ func (db *Database) SetupDatabaseTables() error {
 		)
 	`)
 	if err != nil {
-		return errors.New("failed to create customers table: " + err.Error())
+		return fmt.Errorf("failed to create customers table: %w", err)
 	}
 
 	// Create orders table
@@ -62,10 +60,46 @@ func (db *Database) SetupDatabaseTables() error {
 		)
 	`)
 	if err != nil {
-		return errors.New("failed to create orders table: " + err.Error())
+		return fmt.Errorf("failed to create orders table: %w", err)
+	}
+
+	// Create events table for event sourcing
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS events (
+			id SERIAL PRIMARY KEY,
+			event_type TEXT NOT NULL,
+			occurred_at TIMESTAMP NOT NULL,
+			event_data JSONB NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to create events table: %w", err)
 	}
 
 	return nil
+}
+
+// WithTransaction executes function within a database transaction
+func (db *Database) WithTransaction(fn func(*sql.Tx) error) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p) // Re-throw panic after rollback
+		} else if err != nil {
+			tx.Rollback() // err is not nil; rollback
+		} else {
+			err = tx.Commit() // err is nil; commit
+		}
+	}()
+
+	err = fn(tx)
+	return err
 }
 
 // Close closes the database connection

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,13 +10,15 @@ import (
 	"time"
 
 	"go-cqrs/internal/infrastructure/container"
+	"go-cqrs/internal/infrastructure/logger"
 )
 
 func main() {
 	// Create application container
 	app, err := container.NewContainer()
 	if err != nil {
-		log.Fatalf("Failed to initialize application: %v", err)
+		fmt.Printf("Failed to initialize application: %v\n", err)
+		os.Exit(1)
 	}
 	defer app.Close()
 
@@ -32,9 +33,9 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		fmt.Printf("Server is running on %s...\n", app.Config.ServerAddress())
+		app.Logger.Info("Server is running", logger.String("address", app.Config.ServerAddress()))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to start server: %v", err)
+			app.Logger.Fatal("Failed to start server", logger.Error(err))
 		}
 	}()
 
@@ -42,7 +43,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	app.Logger.Info("Shutting down server...")
 
 	// Create context with timeout for shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -50,8 +51,9 @@ func main() {
 
 	// Shutdown server
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		app.Logger.Fatal("Server forced to shutdown", logger.Error(err))
 	}
 
-	log.Println("Server shutdown complete")
+	app.Logger.Info("Server shutdown complete")
+	app.Logger.Sync()
 }

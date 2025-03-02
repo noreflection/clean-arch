@@ -45,20 +45,32 @@ func ToOrderDTO(order domain.Order) OrderDTO {
 }
 
 // ToDomain converts a CreateOrderRequest to a domain Order
-func (dto CreateOrderRequest) ToDomain() *domain.Order {
-	order := domain.NewOrder(dto.Product, dto.Quantity)
-	if dto.CustomerID != nil {
-		order.AssignCustomer(*dto.CustomerID)
+func (dto CreateOrderRequest) ToDomain() (*domain.Order, error) {
+	order, err := domain.NewOrder(dto.Product, dto.Quantity)
+	if err != nil {
+		return nil, err
 	}
-	return order
+
+	if dto.CustomerID != nil {
+		if err := order.AssignCustomer(*dto.CustomerID); err != nil {
+			return nil, err
+		}
+	}
+	return order, nil
 }
 
 // ToDomain converts an UpdateOrderRequest to a domain Order
-func (dto UpdateOrderRequest) ToDomain() *domain.Order {
-	order := domain.NewOrder(dto.Product, dto.Quantity)
+func (dto UpdateOrderRequest) ToDomain() (*domain.Order, error) {
+	order, err := domain.NewOrder(dto.Product, dto.Quantity)
+	if err != nil {
+		return nil, err
+	}
+
 	order.ID = dto.ID
 	if dto.CustomerID != nil {
-		order.AssignCustomer(*dto.CustomerID)
+		if err := order.AssignCustomer(*dto.CustomerID); err != nil {
+			return nil, err
+		}
 	}
-	return order
+	return order, nil
 }

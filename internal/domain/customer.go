@@ -1,8 +1,9 @@
 package domain
 
 import (
-	"errors"
 	"regexp"
+
+	domainerrors "go-cqrs/internal/domain/errors"
 )
 
 // Customer represents a customer in the domain
@@ -16,18 +17,36 @@ type Customer struct {
 
 // NewCustomer creates a new Customer entity with validation
 func NewCustomer(name string, email string) (*Customer, error) {
-	if name == "" {
-		return nil, errors.New("customer name cannot be empty")
-	}
-	
-	if !isValidEmail(email) {
-		return nil, errors.New("invalid email format")
-	}
-	
-	return &Customer{
+	customer := &Customer{
 		Name:  name,
 		Email: email,
-	}, nil
+	}
+
+	if err := customer.Validate(); err != nil {
+		return nil, err
+	}
+
+	return customer, nil
+}
+
+// Validate validates the customer entity
+func (c *Customer) Validate() error {
+	if c.Name == "" {
+		return domainerrors.NewValidationError("customer name cannot be empty")
+	}
+
+	if !isValidEmail(c.Email) {
+		return domainerrors.NewValidationError("invalid email format")
+	}
+
+	return nil
+}
+
+// Update updates the customer fields with validation
+func (c *Customer) Update(name string, email string) error {
+	c.Name = name
+	c.Email = email
+	return c.Validate()
 }
 
 // isValidEmail validates email format using simple regex

@@ -1,8 +1,6 @@
 package container
 
 import (
-	"log"
-
 	"go-cqrs/internal/adapters/cqrs/commands"
 	"go-cqrs/internal/adapters/cqrs/queries"
 	"go-cqrs/internal/adapters/http/controllers"
@@ -10,6 +8,7 @@ import (
 	"go-cqrs/internal/application/ports"
 	"go-cqrs/internal/application/services"
 	"go-cqrs/internal/infrastructure/config"
+	"go-cqrs/internal/infrastructure/logger"
 	event_store "go-cqrs/internal/infrastructure/messaging/events"
 	"go-cqrs/internal/infrastructure/persistence"
 )
@@ -18,6 +17,7 @@ import (
 type Container struct {
 	Config *config.Config
 	DB     *persistence.Database
+	Logger logger.Logger
 
 	// Repositories
 	OrderRepository    ports.OrderRepository
@@ -49,85 +49,97 @@ type Container struct {
 
 // NewContainer creates a new dependency injection container
 func NewContainer() (*Container, error) {
-	container := &Container{}
-
 	// Load configuration
-	var err error
-	container.Config, err = config.Load()
+	cfg, err := config.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	// Setup database
-	container.DB, err = persistence.NewDatabase(container.Config)
+	// Initialize logger
+	log := logger.NewZapLogger(logger.LogLevel(cfg.LogLevel), cfg.Environment == "production")
+	log.Info("Initializing application container",
+		logger.String("environment", cfg.Environment),
+		logger.String("server_address", cfg.ServerAddress()))
+
+	// Create container
+	c := &Container{
+		Config: cfg,
+		Logger: log,
+	}
+
+	// Initialize database
+	db, err := persistence.NewDatabase(cfg.DatabaseURL())
 	if err != nil {
+		log.Error("Failed to connect to database", logger.Error(err))
 		return nil, err
 	}
+	c.DB = db
+	log.Info("Connected to database", logger.String("host", cfg.DBHost), logger.String("database", cfg.DBName))
 
 	// Initialize tables
-	if err = container.DB.SetupDatabaseTables(); err != nil {
+	if err = c.DB.SetupDatabaseTables(); err != nil {
 		return nil, err
 	}
 
 	// Initialize repositories
-	container.OrderRepository = persistence.NewOrderRepository(container.DB.DB)
-	container.CustomerRepository = persistence.NewCustomerRepository(container.DB.DB)
+	c.OrderRepository = persistence.NewOrderRepository(c.DB.DB)
+	c.CustomerRepository = persistence.NewCustomerRepository(c.DB.DB)
 
 	// Initialize use cases
-	container.OrderUseCase = services.NewOrderService(
-		container.OrderRepository,
-		container.CustomerRepository,
+	c.OrderUseCase = services.NewOrderService(
+		c.OrderRepository,
+		c.CustomerRepository,
 	)
-	container.CustomerUseCase = services.NewCustomerService(
-		container.CustomerRepository,
+	c.CustomerUseCase = services.NewCustomerService(
+		c.CustomerRepository,
 	)
 
 	// Initialize event stores
-	container.OrderEventStore = event_store.NewEventStore("order")
-	container.CustomerEventStore = event_store.NewEventStore("customer")
+	c.OrderEventStore = event_store.NewPostgresEventStore(c.DB.DB, "order", c.Logger)
+	c.CustomerEventStore = event_store.NewPostgresEventStore(c.DB.DB, "customer", c.Logger)
 
 	// Initialize command handlers
-	container.OrderCommandHandler = commands.NewOrderCommandHandler(
-		container.OrderEventStore,
-		container.OrderUseCase,
+	c.OrderCommandHandler = commands.NewOrderCommandHandler(
+		c.OrderEventStore,
+		c.OrderUseCase,
 	)
-	container.CustomerCommandHandler = commands.NewCustomerCommandHandler(
-		container.CustomerEventStore,
-		container.CustomerUseCase,
+	c.CustomerCommandHandler = commands.NewCustomerCommandHandler(
+		c.CustomerEventStore,
+		c.CustomerUseCase,
 	)
 
 	// Initialize query handlers
-	container.OrderQueryHandler = queries.NewOrderQueryHandler(
-		container.OrderRepository,
+	c.OrderQueryHandler = queries.NewOrderQueryHandler(
+		c.OrderRepository,
 	)
-	container.CustomerQueryHandler = queries.NewCustomerQueryHandler(
-		container.CustomerRepository,
+	c.CustomerQueryHandler = queries.NewCustomerQueryHandler(
+		c.CustomerRepository,
 	)
 
 	// Initialize controllers
-	container.OrderController = *controllers.NewOrderController(
-		container.OrderCommandHandler,
-		container.OrderQueryHandler,
+	c.OrderController = *controllers.NewOrderController(
+		c.OrderCommandHandler,
+		c.OrderQueryHandler,
 	)
-	container.CustomerController = *controllers.NewCustomerController(
-		container.CustomerCommandHandler,
-		container.CustomerQueryHandler,
+	c.CustomerController = *controllers.NewCustomerController(
+		c.CustomerCommandHandler,
+		c.CustomerQueryHandler,
 	)
 
 	// Initialize router
-	container.Router = router.NewRouter(
-		container.CustomerController,
-		container.OrderController,
+	c.Router = router.NewRouter(
+		c.CustomerController,
+		c.OrderController,
 	)
 
-	return container, nil
+	return c, nil
 }
 
 // Close closes all resources
 func (c *Container) Close() {
 	if c.DB != nil {
 		if err := c.DB.Close(); err != nil {
-			log.Printf("error closing database: %v", err)
+			c.Logger.Error("error closing database", logger.Error(err))
 		}
 	}
 }

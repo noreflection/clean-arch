@@ -4,7 +4,6 @@ import (
 	"database/sql"
 
 	"go-cqrs/internal/application/ports"
-	"go-cqrs/internal/infrastructure/config"
 	db "go-cqrs/internal/infrastructure/persistence/database"
 	repos "go-cqrs/internal/infrastructure/persistence/repositories"
 )
@@ -15,13 +14,18 @@ type Database struct {
 }
 
 // NewDatabase creates a new database connection
-func NewDatabase(cfg *config.Config) (*Database, error) {
-	database, err := db.NewDatabase(cfg)
+func NewDatabase(connString string) (*Database, error) {
+	database, err := db.NewDatabase(connString)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Database{Database: database}, nil
+}
+
+// WithTransaction executes function within a database transaction
+func (d *Database) WithTransaction(fn func(*sql.Tx) error) error {
+	return d.Database.WithTransaction(fn)
 }
 
 // NewCustomerRepository creates a new customer repository

@@ -6,9 +6,10 @@ import (
 	"sync"
 )
 
-// EventStore is an interface for storing events.
+// EventStore is an interface for storing and retrieving events.
 type EventStore interface {
 	StoreEvent(ctx context.Context, event events.Event) error
+	GetEvents(ctx context.Context, eventType string) ([]events.Event, error)
 }
 
 // InMemoryEventStore is an in-memory implementation of the EventStore interface.
@@ -26,17 +27,31 @@ func (s *InMemoryEventStore) StoreEvent(ctx context.Context, event events.Event)
 	return nil
 }
 
-// GetEvents returns all stored events.
-func (s *InMemoryEventStore) GetEvents() []events.Event {
+// GetEvents returns events filtered by type.
+func (s *InMemoryEventStore) GetEvents(ctx context.Context, eventType string) ([]events.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	return s.events
+
+	var filteredEvents []events.Event
+	for _, event := range s.events {
+		if eventType == "" || event.EventType() == eventType {
+			filteredEvents = append(filteredEvents, event)
+		}
+	}
+
+	return filteredEvents, nil
 }
 
-// NewEventStore creates a new event store based on the specified type.
-func NewEventStore(eventType string) EventStore {
+// NewInMemoryEventStore creates a new in-memory event store.
+func NewInMemoryEventStore(eventType string) EventStore {
 	return &InMemoryEventStore{
 		storeType: eventType,
 		events:    make([]events.Event, 0),
 	}
+}
+
+// NewEventStore creates a new event store (currently uses in-memory implementation).
+// This is maintained for backward compatibility.
+func NewEventStore(eventType string) EventStore {
+	return NewInMemoryEventStore(eventType)
 }
