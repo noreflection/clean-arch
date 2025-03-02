@@ -8,15 +8,16 @@ import (
 	"go-cqrs/internal/application/ports"
 	"go-cqrs/internal/application/services"
 	"go-cqrs/internal/infrastructure/config"
+	"go-cqrs/internal/infrastructure/database"
 	"go-cqrs/internal/infrastructure/logger"
 	event_store "go-cqrs/internal/infrastructure/messaging/events"
-	"go-cqrs/internal/infrastructure/persistence"
+	"go-cqrs/internal/infrastructure/repositories"
 )
 
 // Container holds all application dependencies
 type Container struct {
 	Config *config.Config
-	DB     *persistence.Database
+	DB     *database.Database
 	Logger logger.Logger
 
 	// Repositories
@@ -68,7 +69,7 @@ func NewContainer() (*Container, error) {
 	}
 
 	// Initialize database
-	db, err := persistence.NewDatabase(cfg.DatabaseURL())
+	db, err := database.NewDatabase(cfg.DatabaseURL())
 	if err != nil {
 		log.Error("Failed to connect to database", logger.Error(err))
 		return nil, err
@@ -82,8 +83,8 @@ func NewContainer() (*Container, error) {
 	}
 
 	// Initialize repositories
-	c.OrderRepository = persistence.NewOrderRepository(c.DB.DB)
-	c.CustomerRepository = persistence.NewCustomerRepository(c.DB.DB)
+	c.OrderRepository = repositories.NewOrderRepository(c.DB.DB)
+	c.CustomerRepository = repositories.NewCustomerRepository(c.DB.DB)
 
 	// Initialize use cases
 	c.OrderUseCase = services.NewOrderService(
