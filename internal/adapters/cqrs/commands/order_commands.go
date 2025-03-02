@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-cqrs/internal/adapters/http/dto"
 	"go-cqrs/internal/application/ports"
+	"go-cqrs/internal/domain/events"
 	event_store "go-cqrs/internal/infrastructure/messaging/events"
 	"strconv"
 )
@@ -45,7 +46,7 @@ func (h *OrderCommandHandler) HandleCreateOrderCommand(ctx context.Context, cmd 
 	}
 
 	// Store event
-	event := event_store.NewOrderCreatedEvent(
+	event := events.NewOrderCreatedEvent(
 		strconv.Itoa(result.ID),
 		result.Product,
 		result.Quantity,
@@ -73,10 +74,8 @@ func (h *OrderCommandHandler) HandleDeleteOrderCommand(ctx context.Context, cmd 
 	}
 
 	// Record the order deleted event
-	if err := h.eventStore.StoreEvent(ctx, map[string]interface{}{
-		"type":    "order_deleted",
-		"orderId": cmd.ID,
-	}); err != nil {
+	event := events.NewOrderDeletedEvent(strconv.Itoa(cmd.ID))
+	if err := h.eventStore.StoreEvent(ctx, event); err != nil {
 		fmt.Printf("Warning: Failed to store order deleted event: %v\n", err)
 	}
 
@@ -114,13 +113,19 @@ func (h *OrderCommandHandler) HandleUpdateOrderCommand(ctx context.Context, cmd 
 	}
 
 	// Record the order updated event
-	if err := h.eventStore.StoreEvent(ctx, map[string]interface{}{
-		"type":       "order_updated",
-		"orderId":    cmd.ID,
-		"product":    cmd.Product,
-		"quantity":   cmd.Quantity,
-		"customerId": cmd.CustomerID,
-	}); err != nil {
+	var customerIDStr *string
+	if cmd.CustomerID != nil {
+		idStr := strconv.Itoa(*cmd.CustomerID)
+		customerIDStr = &idStr
+	}
+
+	event := events.NewOrderUpdatedEvent(
+		strconv.Itoa(cmd.ID),
+		cmd.Product,
+		cmd.Quantity,
+		customerIDStr,
+	)
+	if err := h.eventStore.StoreEvent(ctx, event); err != nil {
 		fmt.Printf("Warning: Failed to store order updated event: %v\n", err)
 	}
 
@@ -146,11 +151,11 @@ func (h *OrderCommandHandler) HandleAssignCustomerCommand(ctx context.Context, c
 	}
 
 	// Record the customer assigned event
-	if err := h.eventStore.StoreEvent(ctx, map[string]interface{}{
-		"type":       "customer_assigned_to_order",
-		"orderId":    cmd.OrderID,
-		"customerId": cmd.CustomerID,
-	}); err != nil {
+	event := events.NewCustomerAssignedToOrderEvent(
+		strconv.Itoa(cmd.OrderID),
+		strconv.Itoa(cmd.CustomerID),
+	)
+	if err := h.eventStore.StoreEvent(ctx, event); err != nil {
 		fmt.Printf("Warning: Failed to store customer assigned event: %v\n", err)
 	}
 

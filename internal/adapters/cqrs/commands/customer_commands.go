@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-cqrs/internal/adapters/http/dto"
 	"go-cqrs/internal/application/ports"
+	"go-cqrs/internal/domain/events"
 	event_store "go-cqrs/internal/infrastructure/messaging/events"
 	"strconv"
 )
@@ -43,7 +44,7 @@ func (h *CustomerCommandHandler) HandleCreateCustomerCommand(ctx context.Context
 	}
 
 	// Store event
-	event := event_store.NewCustomerCreatedEvent(
+	event := events.NewCustomerCreatedEvent(
 		strconv.Itoa(result.ID),
 		result.Name,
 		result.Email,
@@ -71,10 +72,8 @@ func (h *CustomerCommandHandler) HandleDeleteCustomerCommand(ctx context.Context
 	}
 
 	// Record customer deleted event
-	if err := h.eventStore.StoreEvent(ctx, map[string]interface{}{
-		"type":       "customer_deleted",
-		"customerId": cmd.ID,
-	}); err != nil {
+	event := events.NewCustomerDeletedEvent(strconv.Itoa(cmd.ID))
+	if err := h.eventStore.StoreEvent(ctx, event); err != nil {
 		fmt.Printf("Warning: Failed to store customer deleted event: %v\n", err)
 	}
 
@@ -110,12 +109,12 @@ func (h *CustomerCommandHandler) HandleUpdateCustomerCommand(ctx context.Context
 	}
 
 	// Record customer updated event
-	if err := h.eventStore.StoreEvent(ctx, map[string]interface{}{
-		"type":       "customer_updated",
-		"customerId": cmd.ID,
-		"name":       cmd.Name,
-		"email":      cmd.Email,
-	}); err != nil {
+	event := events.NewCustomerUpdatedEvent(
+		strconv.Itoa(cmd.ID),
+		cmd.Name,
+		cmd.Email,
+	)
+	if err := h.eventStore.StoreEvent(ctx, event); err != nil {
 		fmt.Printf("Warning: Failed to store customer updated event: %v\n", err)
 	}
 
