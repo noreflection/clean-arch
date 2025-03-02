@@ -7,17 +7,14 @@ import (
 	"go-cqrs/internal/application/ports"
 )
 
-// CustomerService implements the CustomerUseCase interface
 type CustomerService struct {
 	customerRepo ports.CustomerRepository
 }
 
-// NewCustomerService creates a new CustomerService
 func NewCustomerService(customerRepo ports.CustomerRepository) *CustomerService {
 	return &CustomerService{customerRepo: customerRepo}
 }
 
-// CreateCustomer implements the CustomerUseCase interface
 func (s *CustomerService) CreateCustomer(ctx context.Context, request dto.CreateCustomerRequest) (*dto.CustomerDTO, error) {
 	// Convert DTO to domain entity
 	customer, err := request.ToDomain()
@@ -51,7 +48,6 @@ func (s *CustomerService) CreateCustomer(ctx context.Context, request dto.Create
 	return &customerDTO, nil
 }
 
-// GetCustomer implements the CustomerUseCase interface
 func (s *CustomerService) GetCustomer(ctx context.Context, id int) (*dto.CustomerDTO, error) {
 	customer, err := s.customerRepo.GetByID(ctx, id)
 	if err != nil {
@@ -65,7 +61,6 @@ func (s *CustomerService) GetCustomer(ctx context.Context, id int) (*dto.Custome
 	return &customerDTO, nil
 }
 
-// UpdateCustomer implements the CustomerUseCase interface
 func (s *CustomerService) UpdateCustomer(ctx context.Context, request dto.UpdateCustomerRequest) error {
 	// Check if customer exists
 	existingCustomer, err := s.customerRepo.GetByID(ctx, request.ID)
@@ -96,7 +91,6 @@ func (s *CustomerService) UpdateCustomer(ctx context.Context, request dto.Update
 	return s.customerRepo.Update(ctx, *customer)
 }
 
-// DeleteCustomer implements the CustomerUseCase interface
 func (s *CustomerService) DeleteCustomer(ctx context.Context, id int) error {
 	// Check if customer exists
 	existingCustomer, err := s.customerRepo.GetByID(ctx, id)
@@ -111,7 +105,6 @@ func (s *CustomerService) DeleteCustomer(ctx context.Context, id int) error {
 	return s.customerRepo.Delete(ctx, id)
 }
 
-// ListCustomers implements the CustomerUseCase interface
 func (s *CustomerService) ListCustomers(ctx context.Context, limit, offset int) ([]dto.CustomerDTO, error) {
 	customers, err := s.customerRepo.List(ctx, limit, offset)
 	if err != nil {

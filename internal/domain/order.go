@@ -26,7 +26,6 @@ const (
 	OrderStatusCancelled OrderStatus = "CANCELLED"
 )
 
-// NewOrder creates a new Order entity with validation
 func NewOrder(product string, quantity int) (*Order, error) {
 	order := &Order{
 		Product:  product,
@@ -40,7 +39,6 @@ func NewOrder(product string, quantity int) (*Order, error) {
 	return order, nil
 }
 
-// Validate validates the order entity
 func (o *Order) Validate() error {
 	if o.Product == "" {
 		return domainerrors.NewValidationError("product cannot be empty")
@@ -53,7 +51,6 @@ func (o *Order) Validate() error {
 	return nil
 }
 
-// AssignCustomer assigns a customer to this order with validation
 func (o *Order) AssignCustomer(customerID int) error {
 	if customerID <= 0 {
 		return domainerrors.NewValidationError("customer ID must be greater than zero")
@@ -63,7 +60,6 @@ func (o *Order) AssignCustomer(customerID int) error {
 	return nil
 }
 
-// Update updates the order fields with validation
 func (o *Order) Update(product string, quantity int) error {
 	o.Product = product
 	o.Quantity = quantity

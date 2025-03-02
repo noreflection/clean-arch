@@ -15,7 +15,6 @@ type Customer struct {
 	//UpdatedAt time.Time
 }
 
-// NewCustomer creates a new Customer entity with validation
 func NewCustomer(name string, email string) (*Customer, error) {
 	customer := &Customer{
 		Name:  name,
@@ -29,7 +28,6 @@ func NewCustomer(name string, email string) (*Customer, error) {
 	return customer, nil
 }
 
-// Validate validates the customer entity
 func (c *Customer) Validate() error {
 	if c.Name == "" {
 		return domainerrors.NewValidationError("customer name cannot be empty")
@@ -42,7 +40,6 @@ func (c *Customer) Validate() error {
 	return nil
 }
 
-// Update updates the customer fields with validation
 func (c *Customer) Update(name string, email string) error {
 	c.Name = name
 	c.Email = email

@@ -22,7 +22,6 @@ type DomainError struct {
 	Err     error
 }
 
-// Error returns the error message
 func (e *DomainError) Error() string {
 	if e.Err != nil {
 		return fmt.Sprintf("%s: %v", e.Message, e.Err)
@@ -30,12 +29,10 @@ func (e *DomainError) Error() string {
 	return e.Message
 }
 
-// Unwrap returns the wrapped error
 func (e *DomainError) Unwrap() error {
 	return e.Err
 }
 
-// NewNotFoundError creates a new not found error
 func NewNotFoundError(entity string, id interface{}) *DomainError {
 	return &DomainError{
 		Code:    ErrorCodeNotFound,
@@ -43,7 +40,6 @@ func NewNotFoundError(entity string, id interface{}) *DomainError {
 	}
 }
 
-// NewValidationError creates a new validation error
 func NewValidationError(message string) *DomainError {
 	return &DomainError{
 		Code:    ErrorCodeValidation,
@@ -51,7 +47,6 @@ func NewValidationError(message string) *DomainError {
 	}
 }
 
-// NewInvalidInputError creates a new invalid input error
 func NewInvalidInputError(message string) *DomainError {
 	return &DomainError{
 		Code:    ErrorCodeInvalidInput,
@@ -59,7 +54,6 @@ func NewInvalidInputError(message string) *DomainError {
 	}
 }
 
-// NewDatabaseError wraps a database error
 func NewDatabaseError(err error, operation string) *DomainError {
 	return &DomainError{
 		Code:    ErrorCodeDatabaseError,

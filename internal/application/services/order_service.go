@@ -9,13 +9,11 @@ import (
 	domainerrors "go-cqrs/internal/domain/errors"
 )
 
-// OrderService implements the OrderUseCase interface
 type OrderService struct {
 	orderRepo    ports.OrderRepository
 	customerRepo ports.CustomerRepository
 }
 
-// NewOrderService creates a new OrderService
 func NewOrderService(orderRepo ports.OrderRepository, customerRepo ports.CustomerRepository) *OrderService {
 	return &OrderService{
 		orderRepo:    orderRepo,
@@ -23,7 +21,6 @@ func NewOrderService(orderRepo ports.OrderRepository, customerRepo ports.Custome
 	}
 }
 
-// CreateOrder implements the OrderUseCase interface
 func (s *OrderService) CreateOrder(ctx context.Context, request dto.CreateOrderRequest) (*dto.OrderDTO, error) {
 	// Create domain entity
 	order, err := domain.NewOrder(request.Product, request.Quantity)
@@ -63,7 +60,6 @@ func (s *OrderService) CreateOrder(ctx context.Context, request dto.CreateOrderR
 	return &orderDTO, nil
 }
 
-// GetOrder implements the OrderUseCase interface
 func (s *OrderService) GetOrder(ctx context.Context, id int) (*dto.OrderDTO, error) {
 	order, err := s.orderRepo.GetByID(ctx, id)
 	if err != nil {
@@ -77,7 +73,6 @@ func (s *OrderService) GetOrder(ctx context.Context, id int) (*dto.OrderDTO, err
 	return &orderDTO, nil
 }
 
-// UpdateOrder implements the OrderUseCase interface
 func (s *OrderService) UpdateOrder(ctx context.Context, request dto.UpdateOrderRequest) error {
 	// Check if order exists
 	existingOrder, err := s.orderRepo.GetByID(ctx, request.ID)
@@ -119,7 +114,6 @@ func (s *OrderService) UpdateOrder(ctx context.Context, request dto.UpdateOrderR
 	return s.orderRepo.Update(ctx, *updatedOrder)
 }
 
-// DeleteOrder implements the OrderUseCase interface
 func (s *OrderService) DeleteOrder(ctx context.Context, id int) error {
 	// Check if order exists
 	order, err := s.orderRepo.GetByID(ctx, id)
@@ -134,7 +128,6 @@ func (s *OrderService) DeleteOrder(ctx context.Context, id int) error {
 	return s.orderRepo.Delete(ctx, id)
 }
 
-// ListOrders implements the OrderUseCase interface
 func (s *OrderService) ListOrders(ctx context.Context, limit, offset int) ([]dto.OrderDTO, error) {
 	orders, err := s.orderRepo.List(ctx, limit, offset)
 	if err != nil {
@@ -150,7 +143,6 @@ func (s *OrderService) ListOrders(ctx context.Context, limit, offset int) ([]dto
 	return result, nil
 }
 
-// AssignCustomerToOrder implements the OrderUseCase interface
 func (s *OrderService) AssignCustomerToOrder(ctx context.Context, orderID, customerID int) error {
 	// Check if order exists
 	order, err := s.orderRepo.GetByID(ctx, orderID)
