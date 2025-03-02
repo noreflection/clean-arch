@@ -3,47 +3,50 @@ package command_handlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"go-cqrs/internal/app"
-	"go-cqrs/internal/domain"
 	"go-cqrs/internal/infra/event_store"
-	"log"
+	"go-cqrs/internal/interface/dto"
 )
 
 type CustomerCommandHandler struct {
 	eventStore event_store.EventStore
-	service    app.UseCases[domain.Customer]
+	useCase    app.CustomerUseCase
 }
 
-func NewCustomerCommandHandler(eventStore event_store.EventStore, service app.UseCases[domain.Customer]) *CustomerCommandHandler {
-	return &CustomerCommandHandler{eventStore: eventStore, service: service}
+func NewCustomerCommandHandler(eventStore event_store.EventStore, useCase app.CustomerUseCase) *CustomerCommandHandler {
+	return &CustomerCommandHandler{eventStore: eventStore, useCase: useCase}
 }
 
 type CreateCustomerCommand struct {
-	ID       int
-	Product  string
-	Quantity int
+	Name  string
+	Email string
 }
 
 func (h *CustomerCommandHandler) HandleCreateCustomerCommand(ctx context.Context, cmd CreateCustomerCommand) (int, error) {
-	if cmd.Product == "" {
-		return 0, errors.New("product is required")
+	if cmd.Name == "" {
+		return 0, errors.New("name is required")
 	}
-	if cmd.Quantity <= 0 {
-		return 0, errors.New("quantity must be greater than zero")
+	if cmd.Email == "" {
+		return 0, errors.New("email is required")
 	}
 
-	var customer domain.Customer
-	id, err := h.service.Create(ctx, cmd.ID, customer)
-	if err != nil {
-		log.Fatalf("Unable to create order with id %d: %v", id, err)
+	request := dto.CreateCustomerRequest{
+		Name:  cmd.Name,
+		Email: cmd.Email,
 	}
-	//todo: Persist the order creation event
-	//event := event_store.NewOrderCreatedEvent(order.ID(), order.Product(), order.Quantity())
-	//if err := h.eventStore.StoreEvent(ctx, event); err != nil {
-	//	return err
-	//}
-	return id, nil
+
+	result, err := h.useCase.CreateCustomer(ctx, request)
+	if err != nil {
+		return 0, err
+	}
+
+	// TODO: Store event
+	// event := event_store.NewCustomerCreatedEvent(result.ID, result.Name, result.Email)
+	// if err := h.eventStore.StoreEvent(ctx, event); err != nil {
+	//     return 0, err
+	// }
+
+	return result.ID, nil
 }
 
 type DeleteCustomerCommand struct {
@@ -51,31 +54,29 @@ type DeleteCustomerCommand struct {
 }
 
 func (h *CustomerCommandHandler) HandleDeleteCustomerCommand(ctx context.Context, cmd DeleteCustomerCommand) error {
-	if cmd.ID == 0 {
-		return errors.New("ID is required")
+	if cmd.ID <= 0 {
+		return errors.New("valid ID is required")
 	}
 
-	if err := h.service.Delete(ctx, cmd.ID); err != nil {
-		return errors.New(fmt.Sprintf("failed to delete customer: %s", err))
-	}
-	return nil
+	return h.useCase.DeleteCustomer(ctx, cmd.ID)
 }
 
 type UpdateCustomerCommand struct {
-	ID       int
-	Product  string
-	Quantity int
+	ID    int
+	Name  string
+	Email string
 }
 
 func (h *CustomerCommandHandler) HandleUpdateCustomerCommand(ctx context.Context, cmd UpdateCustomerCommand) error {
-	if cmd.ID == 0 {
-		return errors.New("ID is required")
+	if cmd.ID <= 0 {
+		return errors.New("valid ID is required")
 	}
 
-	var customer domain.Customer
-	err := h.service.Update(ctx, customer)
-	if err != nil {
-		return errors.New(fmt.Sprintf("failed to update customer: %s", err))
+	request := dto.UpdateCustomerRequest{
+		ID:    cmd.ID,
+		Name:  cmd.Name,
+		Email: cmd.Email,
 	}
-	return nil
+
+	return h.useCase.UpdateCustomer(ctx, request)
 }

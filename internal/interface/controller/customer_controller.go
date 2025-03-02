@@ -20,6 +20,28 @@ func NewCustomerController(commandHandler *command_handlers.CustomerCommandHandl
 	return &CustomerController{commandHandler: commandHandler, queryHandler: queryHandler}
 }
 
+// Method aliases for the router compatibility
+func (c *CustomerController) CreateCustomer(w http.ResponseWriter, r *http.Request) {
+	c.CreateCustomerHandler(w, r)
+}
+
+func (c *CustomerController) GetCustomer(w http.ResponseWriter, r *http.Request) {
+	c.GetCustomerHandler(w, r)
+}
+
+func (c *CustomerController) DeleteCustomer(w http.ResponseWriter, r *http.Request) {
+	c.DeleteCustomerHandler(w, r)
+}
+
+func (c *CustomerController) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
+	c.UpdateCustomerHandler(w, r)
+}
+
+func (c *CustomerController) ListCustomers(w http.ResponseWriter, r *http.Request) {
+	// TODO: Implement list customers functionality
+	json.NewEncoder(w).Encode(map[string]string{"message": "List customers not implemented yet"})
+}
+
 func (c *CustomerController) CreateCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	var createCmd command_handlers.CreateCustomerCommand
 	err := json.NewDecoder(r.Body).Decode(&createCmd)

@@ -2,16 +2,15 @@ package query_handlers
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"go-cqrs/internal/app"
-	"go-cqrs/internal/domain"
 )
 
 type CustomerQueryHandler struct {
-	customerRepo app.Repository[domain.Customer]
+	customerRepo app.CustomerRepository
 }
 
-func NewCustomerQueryHandler(customerRepo app.Repository[domain.Customer]) *CustomerQueryHandler {
+func NewCustomerQueryHandler(customerRepo app.CustomerRepository) *CustomerQueryHandler {
 	return &CustomerQueryHandler{customerRepo: customerRepo}
 }
 
@@ -20,9 +19,12 @@ type GetCustomerQuery struct {
 }
 
 func (h *CustomerQueryHandler) HandleGetCustomerQuery(ctx context.Context, query GetCustomerQuery) (interface{}, error) {
-	customer, err := h.customerRepo.Get(ctx, query.ID)
+	customer, err := h.customerRepo.GetByID(ctx, query.ID)
 	if err != nil {
-		return domain.Customer{}, fmt.Errorf("failed to retrieve customer by ID: %w", err)
+		return nil, err
+	}
+	if customer == nil {
+		return nil, errors.New("customer not found")
 	}
 	return customer, nil
 }

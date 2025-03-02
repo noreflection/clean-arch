@@ -2,69 +2,127 @@ package usecases
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
-	"github.com/pkg/errors"
+	"errors"
 	"go-cqrs/internal/app"
-	"go-cqrs/internal/domain"
-	"log"
+	"go-cqrs/internal/interface/dto"
 )
 
+// CustomerUseCases implements the CustomerUseCase interface
 type CustomerUseCases struct {
-	customerRepo app.Repository[domain.Customer]
+	customerRepo app.CustomerRepository
 }
 
-func NewCustomerUseCases(customerRepo app.Repository[domain.Customer]) *CustomerUseCases {
+// NewCustomerUseCases creates a new CustomerUseCases
+func NewCustomerUseCases(customerRepo app.CustomerRepository) *CustomerUseCases {
 	return &CustomerUseCases{customerRepo: customerRepo}
 }
 
-func (s *CustomerUseCases) Create(ctx context.Context, id int, customer domain.Customer) (int, error) {
-	// Additional validation or business logic should be performed here
-	// For example, checking if the customer exists or if the user is allowed to create orders
-	c := domain.NewCustomer(customer.Name, customer.Email)
-	orderID, err := s.customerRepo.Create(ctx, *c)
+// CreateCustomer implements the CustomerUseCase interface
+func (s *CustomerUseCases) CreateCustomer(ctx context.Context, request dto.CreateCustomerRequest) (*dto.CustomerDTO, error) {
+	// Convert DTO to domain entity
+	customer, err := request.ToDomain()
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to create order")
+		return nil, err
 	}
 
-	id, err = s.customerRepo.Create(ctx, *c)
-	if err != nil {
-		log.Fatalf("Unable to create order with id %d: %v", id, err)
+	// Check if email already exists
+	existingCustomer, err := s.customerRepo.GetByEmail(ctx, customer.Email)
+	if err != nil && !errors.Is(err, errors.New("not found")) {
+		return nil, err
 	}
-	return orderID, nil
+	if existingCustomer != nil {
+		return nil, errors.New("customer with this email already exists")
+	}
+
+	// Save to repository
+	customerID, err := s.customerRepo.Create(ctx, *customer)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retrieve the created customer to return
+	createdCustomer, err := s.customerRepo.GetByID(ctx, customerID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to DTO and return
+	customerDTO := dto.ToCustomerDTO(*createdCustomer)
+	return &customerDTO, nil
 }
 
-func (s *CustomerUseCases) Delete(ctx context.Context, id int) error {
-	if err := s.checkCustomerExists(ctx, id); err != nil {
-		return err
+// GetCustomer implements the CustomerUseCase interface
+func (s *CustomerUseCases) GetCustomer(ctx context.Context, id int) (*dto.CustomerDTO, error) {
+	customer, err := s.customerRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if customer == nil {
+		return nil, errors.New("customer not found")
 	}
 
-	err := s.customerRepo.Delete(ctx, id)
-	if err != nil {
-		return err
-	}
-	return err
+	customerDTO := dto.ToCustomerDTO(*customer)
+	return &customerDTO, nil
 }
 
-func (s *CustomerUseCases) Update(ctx context.Context, customer domain.Customer) error {
-	if err := s.checkCustomerExists(ctx, customer.ID); err != nil {
-		return err
-	}
-
-	err := s.customerRepo.Update(ctx, customer)
+// UpdateCustomer implements the CustomerUseCase interface
+func (s *CustomerUseCases) UpdateCustomer(ctx context.Context, request dto.UpdateCustomerRequest) error {
+	// Check if customer exists
+	existingCustomer, err := s.customerRepo.GetByID(ctx, request.ID)
 	if err != nil {
 		return err
 	}
-	return err
-}
+	if existingCustomer == nil {
+		return errors.New("customer not found")
+	}
 
-func (s *CustomerUseCases) checkCustomerExists(ctx context.Context, orderID int) error {
-	_, err := s.customerRepo.Get(ctx, orderID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("customer with ID %d not found", orderID)
+	// Check if email is being changed and if it's already taken
+	if existingCustomer.Email != request.Email {
+		customerWithEmail, err := s.customerRepo.GetByEmail(ctx, request.Email)
+		if err != nil && !errors.Is(err, errors.New("not found")) {
+			return err
 		}
-		return errors.Wrap(err, "failed to check if customer exists")
+		if customerWithEmail != nil && customerWithEmail.ID != request.ID {
+			return errors.New("email already in use by another customer")
+		}
 	}
-	return nil
+
+	// Convert DTO to domain entity and update
+	customer, err := request.ToDomain()
+	if err != nil {
+		return err
+	}
+
+	return s.customerRepo.Update(ctx, *customer)
+}
+
+// DeleteCustomer implements the CustomerUseCase interface
+func (s *CustomerUseCases) DeleteCustomer(ctx context.Context, id int) error {
+	// Check if customer exists
+	existingCustomer, err := s.customerRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingCustomer == nil {
+		return errors.New("customer not found")
+	}
+
+	// Delete from repository
+	return s.customerRepo.Delete(ctx, id)
+}
+
+// ListCustomers implements the CustomerUseCase interface
+func (s *CustomerUseCases) ListCustomers(ctx context.Context, limit, offset int) ([]dto.CustomerDTO, error) {
+	customers, err := s.customerRepo.List(ctx, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert domain entities to DTOs
+	var customerDTOs []dto.CustomerDTO
+	for _, customer := range customers {
+		customerDTOs = append(customerDTOs, dto.ToCustomerDTO(customer))
+	}
+
+	return customerDTOs, nil
 }

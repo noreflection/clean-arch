@@ -3,59 +3,121 @@ package repository
 import (
 	"context"
 	"database/sql"
-
-	"github.com/pkg/errors"
+	"errors"
 	"go-cqrs/internal/domain"
 )
 
+// CustomerRepository implements app.CustomerRepository
 type CustomerRepository struct {
 	db *sql.DB
 }
 
+// NewCustomerRepository creates a new CustomerRepository
 func NewCustomerRepository(db *sql.DB) *CustomerRepository {
 	return &CustomerRepository{db: db}
 }
 
+// Create inserts a new customer into the database
 func (r *CustomerRepository) Create(ctx context.Context, customer domain.Customer) (int, error) {
-	var orderID int
-	err := r.db.QueryRow("INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id", customer.Name, customer.Email).Scan(&orderID)
+	var customerID int
+	
+	err := r.db.QueryRowContext(ctx, 
+		"INSERT INTO customers (name, email) VALUES ($1, $2) RETURNING id",
+		customer.Name, customer.Email).Scan(&customerID)
+	
 	if err != nil {
-		return 0, errors.Wrap(err, "Failed to create order")
+		return 0, errors.New("failed to create customer: " + err.Error())
 	}
-	return orderID, nil
+	
+	return customerID, nil
 }
 
-func (r *CustomerRepository) Get(ctx context.Context, orderID int) (domain.Customer, error) {
+// GetByID retrieves a customer by their ID
+func (r *CustomerRepository) GetByID(ctx context.Context, id int) (*domain.Customer, error) {
 	var customer domain.Customer
-	err := r.db.QueryRow("SELECT * FROM cutomers WHERE id = $1", orderID).Scan(&customer.ID, &customer.Name, &customer.Email)
+	
+	err := r.db.QueryRowContext(ctx, 
+		"SELECT id, name, email FROM customers WHERE id = $1", 
+		id).Scan(&customer.ID, &customer.Name, &customer.Email)
+	
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return domain.Customer{}, errors.Wrap(err, "failed to find customer")
+		if err == sql.ErrNoRows {
+			return nil, nil // Not found, return nil without error
 		}
-		return domain.Customer{}, errors.Wrap(err, "failed to get customer")
+		return nil, errors.New("failed to get customer: " + err.Error())
 	}
-	return customer, nil
+	
+	return &customer, nil
 }
 
+// GetByEmail retrieves a customer by their email
+func (r *CustomerRepository) GetByEmail(ctx context.Context, email string) (*domain.Customer, error) {
+	var customer domain.Customer
+	
+	err := r.db.QueryRowContext(ctx, 
+		"SELECT id, name, email FROM customers WHERE email = $1", 
+		email).Scan(&customer.ID, &customer.Name, &customer.Email)
+	
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Not found, return nil without error
+		}
+		return nil, errors.New("failed to get customer by email: " + err.Error())
+	}
+	
+	return &customer, nil
+}
+
+// Update updates an existing customer
 func (r *CustomerRepository) Update(ctx context.Context, customer domain.Customer) error {
-	query := "UPDATE customers SET name = $1, email = $2 WHERE id = $3"
-	_, err := r.db.Exec(query, customer.Name, customer.Email)
+	_, err := r.db.ExecContext(ctx, 
+		"UPDATE customers SET name = $1, email = $2 WHERE id = $3",
+		customer.Name, customer.Email, customer.ID)
+	
 	if err != nil {
-		return errors.Wrap(err, "failed to update customer")
+		return errors.New("failed to update customer: " + err.Error())
 	}
+	
 	return nil
 }
 
+// Delete removes a customer
 func (r *CustomerRepository) Delete(ctx context.Context, id int) error {
-	stmt, err := r.db.Prepare("DELETE FROM customers WHERE id = $1")
+	_, err := r.db.ExecContext(ctx, "DELETE FROM customers WHERE id = $1", id)
+	
 	if err != nil {
-		return errors.Wrap(err, "failed to prepare statement for deleting customer")
+		return errors.New("failed to delete customer: " + err.Error())
 	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(id)
-	if err != nil {
-		return errors.Wrap(err, "failed to delete customer")
-	}
+	
 	return nil
+}
+
+// List retrieves customers with pagination
+func (r *CustomerRepository) List(ctx context.Context, limit, offset int) ([]domain.Customer, error) {
+	rows, err := r.db.QueryContext(ctx, 
+		"SELECT id, name, email FROM customers LIMIT $1 OFFSET $2", 
+		limit, offset)
+	
+	if err != nil {
+		return nil, errors.New("failed to list customers: " + err.Error())
+	}
+	defer rows.Close()
+	
+	var customers []domain.Customer
+	for rows.Next() {
+		var customer domain.Customer
+		
+		err := rows.Scan(&customer.ID, &customer.Name, &customer.Email)
+		if err != nil {
+			return nil, errors.New("failed to scan customer row: " + err.Error())
+		}
+		
+		customers = append(customers, customer)
+	}
+	
+	if err = rows.Err(); err != nil {
+		return nil, errors.New("error iterating customer rows: " + err.Error())
+	}
+	
+	return customers, nil
 }

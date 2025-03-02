@@ -1,43 +1,57 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	_ "github.com/lib/pq"
-	"go-cqrs/internal/app/usecases"
-	"go-cqrs/internal/infra/db"
-	"go-cqrs/internal/infra/event_store"
-	"go-cqrs/internal/infra/repository"
-	"go-cqrs/internal/interface/command_handlers"
-	"go-cqrs/internal/interface/controller"
-	"go-cqrs/internal/interface/query_handlers"
-	"go-cqrs/internal/interface/web"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+	
+	"go-cqrs/internal/infra/container"
 )
 
 func main() {
-	database, err := db.SetupDatabase()
+	// Create application container
+	app, err := container.NewContainer()
 	if err != nil {
-		log.Printf("unable to setup database: %v", err)
-		return
+		log.Fatalf("Failed to initialize application: %v", err)
 	}
-	defer database.Close()
-
-	orderRepo := repository.NewOrderRepository(database)
-	orderUsecases := usecases.NewOrderUseCases(orderRepo)
-	orderEventStore := event_store.NewEventStore("order")
-	orderCommandHandler := command_handlers.NewOrderCommandHandler(orderEventStore, orderUsecases)
-	orderQueryHandler := query_handlers.NewOrderQueryHandler(orderRepo)
-	orderController := controller.NewOrderController(orderCommandHandler, orderQueryHandler)
-
-	customerRepo := repository.NewCustomerRepository(database)
-	customerService := usecases.NewCustomerUseCases(customerRepo)
-	customerEventStore := event_store.NewEventStore("customer")
-	customerCommandHandler := command_handlers.NewCustomerCommandHandler(customerEventStore, customerService)
-	customerQueryHandler := query_handlers.NewCustomerQueryHandler(customerRepo)
-	customerController := controller.NewCustomerController(customerCommandHandler, customerQueryHandler)
-
-	router := web.SetupRouter(*customerController, *orderController)
-	fmt.Println("Server is running on localhost:8080...")
-	log.Fatal(http.ListenAndServe("localhost:8080", router))
+	defer app.Close()
+	
+	// Create server
+	srv := &http.Server{
+		Addr:         app.Config.ServerAddress(),
+		Handler:      app.Router,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+	
+	// Start server in a goroutine
+	go func() {
+		fmt.Printf("Server is running on %s...\n", app.Config.ServerAddress())
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+	
+	// Wait for interrupt signal to gracefully shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down server...")
+	
+	// Create context with timeout for shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	
+	// Shutdown server
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+	
+	log.Println("Server shutdown complete")
 }

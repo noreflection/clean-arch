@@ -3,11 +3,12 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"go-cqrs/internal/interface/command_handlers"
 	"go-cqrs/internal/interface/query_handlers"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type OrderController struct {
@@ -17,6 +18,56 @@ type OrderController struct {
 
 func NewOrderController(commandHandler *command_handlers.OrderCommandHandler, queryHandler *query_handlers.OrderQueryHandler) *OrderController {
 	return &OrderController{commandHandler: commandHandler, queryHandler: queryHandler}
+}
+
+// Method aliases for the router compatibility
+func (c *OrderController) CreateOrder(w http.ResponseWriter, r *http.Request) {
+	c.CreateOrderHandler(w, r)
+}
+
+func (c *OrderController) GetOrder(w http.ResponseWriter, r *http.Request) {
+	c.GetOrderHandler(w, r)
+}
+
+func (c *OrderController) DeleteOrder(w http.ResponseWriter, r *http.Request) {
+	c.DeleteOrderHandler(w, r)
+}
+
+func (c *OrderController) UpdateOrder(w http.ResponseWriter, r *http.Request) {
+	c.UpdateOrderHandler(w, r)
+}
+
+func (c *OrderController) ListOrders(w http.ResponseWriter, r *http.Request) {
+	// TODO: Implement list orders functionality
+	json.NewEncoder(w).Encode(map[string]string{"message": "List orders not implemented yet"})
+}
+
+func (c *OrderController) AssignCustomer(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	orderID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		HandleOrderErrorResponse(w, fmt.Errorf("invalid order ID: %s", vars["id"]))
+		return
+	}
+
+	customerID, err := strconv.Atoi(vars["customerId"])
+	if err != nil {
+		HandleOrderErrorResponse(w, fmt.Errorf("invalid customer ID: %s", vars["customerId"]))
+		return
+	}
+
+	cmd := command_handlers.AssignCustomerCommand{
+		OrderID:    orderID,
+		CustomerID: customerID,
+	}
+
+	err = c.commandHandler.HandleAssignCustomerCommand(r.Context(), cmd)
+	if err != nil {
+		HandleOrderErrorResponse(w, err)
+		return
+	}
+
+	HandleOrderSuccessResponse(w, fmt.Sprintf("Customer %d assigned to order %d", customerID, orderID))
 }
 
 func (c *OrderController) CreateOrderHandler(w http.ResponseWriter, r *http.Request) {

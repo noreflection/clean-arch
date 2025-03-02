@@ -2,70 +2,144 @@ package usecases
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
-	"github.com/pkg/errors"
+	"errors"
 	"go-cqrs/internal/app"
-	"go-cqrs/internal/domain"
-	"log"
+	"go-cqrs/internal/interface/dto"
 )
 
+// OrderUseCases implements the OrderUseCase interface
 type OrderUseCases struct {
-	orderRepo app.Repository[domain.Order]
+	orderRepo    app.OrderRepository
+	customerRepo app.CustomerRepository
 }
 
-func NewOrderUseCases(orderRepo app.Repository[domain.Order]) *OrderUseCases {
-	return &OrderUseCases{orderRepo: orderRepo}
+// NewOrderUseCases creates a new OrderUseCases
+func NewOrderUseCases(orderRepo app.OrderRepository, customerRepo app.CustomerRepository) *OrderUseCases {
+	return &OrderUseCases{
+		orderRepo:    orderRepo,
+		customerRepo: customerRepo,
+	}
 }
 
-func (s *OrderUseCases) Create(ctx context.Context, id int, order domain.Order) (int, error) {
-	// Additional validation or business logic should be performed here
-	// For example, checking if the product exists or if the user is allowed to create orders
-	o, _ := domain.NewOrder(id, order.Product, order.Quantity) //todo
-	orderID, err := s.orderRepo.Create(ctx, *o)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to create order")
-	}
+// CreateOrder implements the OrderUseCase interface
+func (s *OrderUseCases) CreateOrder(ctx context.Context, request dto.CreateOrderRequest) (*dto.OrderDTO, error) {
+	// Convert DTO to domain entity
+	order := request.ToDomain()
 
-	id, err = s.orderRepo.Create(ctx, *o)
-	if err != nil {
-		log.Fatalf("Unable to create order with id %d: %v", id, err)
-	}
-	// Any additional logic after creating the order can be added here
-	return orderID, nil
-
-}
-
-func (s *OrderUseCases) Delete(ctx context.Context, id int) error {
-	if err := s.checkOrderExists(ctx, id); err != nil {
-		return err
-	}
-	err := s.orderRepo.Delete(ctx, id)
-	if err != nil {
-		return err
-	}
-	return err
-}
-
-func (s *OrderUseCases) Update(ctx context.Context, order domain.Order) error {
-	if err := s.checkOrderExists(ctx, order.ID); err != nil {
-		return err
-	}
-
-	err := s.orderRepo.Update(ctx, order)
-	if err != nil {
-		return err
-	}
-	return err
-}
-
-func (s *OrderUseCases) checkOrderExists(ctx context.Context, orderID int) error {
-	_, err := s.orderRepo.Get(ctx, orderID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return fmt.Errorf("order with ID %d not found", orderID)
+	// Validate customer exists if customerID is provided
+	if order.CustomerID != nil {
+		customer, err := s.customerRepo.GetByID(ctx, *order.CustomerID)
+		if err != nil {
+			return nil, errors.New("failed to verify customer existence")
 		}
-		return errors.Wrap(err, "failed to check if order exists")
+		if customer == nil {
+			return nil, errors.New("customer not found")
+		}
 	}
-	return nil
+
+	// Save to repository
+	orderID, err := s.orderRepo.Create(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retrieve the created order to return
+	createdOrder, err := s.orderRepo.GetByID(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to DTO and return
+	orderDTO := dto.ToOrderDTO(*createdOrder)
+	return &orderDTO, nil
+}
+
+// GetOrder implements the OrderUseCase interface
+func (s *OrderUseCases) GetOrder(ctx context.Context, id int) (*dto.OrderDTO, error) {
+	order, err := s.orderRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if order == nil {
+		return nil, errors.New("order not found")
+	}
+
+	orderDTO := dto.ToOrderDTO(*order)
+	return &orderDTO, nil
+}
+
+// UpdateOrder implements the OrderUseCase interface
+func (s *OrderUseCases) UpdateOrder(ctx context.Context, request dto.UpdateOrderRequest) error {
+	// Check if order exists
+	existingOrder, err := s.orderRepo.GetByID(ctx, request.ID)
+	if err != nil {
+		return err
+	}
+	if existingOrder == nil {
+		return errors.New("order not found")
+	}
+
+	// Convert DTO to domain entity
+	order := request.ToDomain()
+
+	// Update in repository
+	return s.orderRepo.Update(ctx, *order)
+}
+
+// DeleteOrder implements the OrderUseCase interface
+func (s *OrderUseCases) DeleteOrder(ctx context.Context, id int) error {
+	// Check if order exists
+	existingOrder, err := s.orderRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingOrder == nil {
+		return errors.New("order not found")
+	}
+
+	// Delete from repository
+	return s.orderRepo.Delete(ctx, id)
+}
+
+// ListOrders implements the OrderUseCase interface
+func (s *OrderUseCases) ListOrders(ctx context.Context, limit, offset int) ([]dto.OrderDTO, error) {
+	orders, err := s.orderRepo.List(ctx, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert domain entities to DTOs
+	var orderDTOs []dto.OrderDTO
+	for _, order := range orders {
+		orderDTOs = append(orderDTOs, dto.ToOrderDTO(order))
+	}
+
+	return orderDTOs, nil
+}
+
+// AssignCustomerToOrder implements the OrderUseCase interface
+func (s *OrderUseCases) AssignCustomerToOrder(ctx context.Context, orderID, customerID int) error {
+	// Check if order exists
+	order, err := s.orderRepo.GetByID(ctx, orderID)
+	if err != nil {
+		return err
+	}
+	if order == nil {
+		return errors.New("order not found")
+	}
+
+	// Check if customer exists
+	customer, err := s.customerRepo.GetByID(ctx, customerID)
+	if err != nil {
+		return err
+	}
+	if customer == nil {
+		return errors.New("customer not found")
+	}
+
+	// Assign customer to order
+	order.AssignCustomer(customerID)
+
+	// Update in repository
+	return s.orderRepo.Update(ctx, *order)
 }
